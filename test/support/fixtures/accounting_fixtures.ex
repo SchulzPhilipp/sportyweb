@@ -25,4 +25,72 @@ defmodule Sportyweb.AccountingFixtures do
 
     transaction
   end
+
+  @doc """
+  Generate a accountclass.
+  """
+  def accountclass_fixture(attrs \\ %{}) do
+    {:ok, accountclass} =
+      attrs
+      |> Enum.into(%{
+        accountclassname: "some accountclassname",
+        accountclassnumber: "0"
+      })
+      |> Sportyweb.Accounting.create_accountclass()
+
+    accountclass
+  end
+
+  @doc """
+  Generate a accountgroup.
+  """
+  def accountgroup_fixture(attrs \\ %{}) do
+    {:ok, accountgroup} =
+      attrs
+      |> Enum.into(%{
+        accountgroupname: "some accountgroupname",
+        accountgroupnumber: "08"
+      })
+      |> Sportyweb.Accounting.create_accountgroup()
+
+    accountgroup
+  end
+
+  @doc """
+  Generate a accounttype.
+  """
+  def accounttype_fixture(attrs \\ %{}) do
+    {:ok, accounttype} =
+      attrs
+      |> Enum.into(%{
+        accounttypename: "some accounttypename"
+      })
+      |> Sportyweb.Accounting.create_accounttype()
+
+    accounttype
+  end
+
+  @doc """
+  Generate a account.
+  """
+  def account_fixture(attrs \\ %{}) do
+    accountclass = accountclass_fixture()
+    accountgroup = accountgroup_fixture()
+    accounttype = accounttype_fixture()
+
+    {:ok, account} =
+      attrs
+      |> Enum.into(%{
+        accountclass_id: accountclass.id,
+        accountgroup_id: accountgroup.id,
+        accounttype_id: accounttype.id,
+        accountbalance: Money.new(:EUR, 120),
+        accountname: "some accountname",
+        accountnumber: "0815"
+      })
+      |> Sportyweb.Accounting.create_account()
+
+    account
+  end
+
 end

@@ -449,4 +449,388 @@ defmodule Sportyweb.Accounting do
     end)
     |> Enum.to_list()
   end
+
+  alias Sportyweb.Accounting.Account
+
+  @doc """
+  Returns the list of accounts.
+
+  ## Examples
+
+      iex> list_accounts()
+      [%Account{}, ...]
+
+  """
+  def list_accounts do
+    Repo.all(Account)
+  end
+
+  @doc """
+  Gets a single account.
+
+  Raises `Ecto.NoResultsError` if the Account does not exist.
+
+  ## Examples
+
+      iex> get_account!(123)
+      %Account{}
+
+      iex> get_account!(456)
+      ** (Ecto.NoResultsError)
+
+  """
+  def get_account!(id), do: Repo.get!(Account, id)
+
+  @doc """
+  Creates a account.
+
+  ## Examples
+
+      iex> create_account(%{field: value})
+      {:ok, %Account{}}
+
+      iex> create_account(%{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def create_account(attrs \\ %{}) do
+    %Account{}
+    |> Account.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  @doc """
+  Updates a account.
+
+  ## Examples
+
+      iex> update_account(account, %{field: new_value})
+      {:ok, %Account{}}
+
+      iex> update_account(account, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_account(%Account{} = account, attrs) do
+    account
+    |> Account.changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Deletes a account.
+
+  ## Examples
+
+      iex> delete_account(account)
+      {:ok, %Account{}}
+
+      iex> delete_account(account)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def delete_account(%Account{} = account) do
+    Repo.delete(account)
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for tracking account changes.
+
+  ## Examples
+
+      iex> change_account(account)
+      %Ecto.Changeset{data: %Account{}}
+
+  """
+  def change_account(%Account{} = account, attrs \\ %{}) do
+    Account.changeset(account, attrs)
+  end
+
+  alias Sportyweb.Accounting.Accountclass
+
+  @doc """
+  Returns the list of accountclasses.
+
+  ## Examples
+
+      iex> list_accountclasses()
+      [%Accountclass{}, ...]
+
+  """
+  def list_accountclasses do
+    Repo.all(Accountclass)
+  end
+
+  @doc """
+  Gets a single accountclass.
+
+  Raises `Ecto.NoResultsError` if the Accountclass does not exist.
+
+  ## Examples
+
+      iex> get_accountclass!(123)
+      %Accountclass{}
+
+      iex> get_accountclass!(456)
+      ** (Ecto.NoResultsError)
+
+  """
+  def get_accountclass!(id), do: Repo.get!(Accountclass, id)
+
+  @doc """
+  Creates a accountclass.
+
+  ## Examples
+
+      iex> create_accountclass(%{field: value})
+      {:ok, %Accountclass{}}
+
+      iex> create_accountclass(%{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def create_accountclass(attrs \\ %{}) do
+    %Accountclass{}
+    |> Accountclass.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  @doc """
+  Updates a accountclass.
+
+  ## Examples
+
+      iex> update_accountclass(accountclass, %{field: new_value})
+      {:ok, %Accountclass{}}
+
+      iex> update_accountclass(accountclass, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_accountclass(%Accountclass{} = accountclass, attrs) do
+    accountclass
+    |> Accountclass.changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Deletes a accountclass.
+
+  ## Examples
+
+      iex> delete_accountclass(accountclass)
+      {:ok, %Accountclass{}}
+
+      iex> delete_accountclass(accountclass)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def delete_accountclass(%Accountclass{} = accountclass) do
+    Repo.delete(accountclass)
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for tracking accountclass changes.
+
+  ## Examples
+
+      iex> change_accountclass(accountclass)
+      %Ecto.Changeset{data: %Accountclass{}}
+
+  """
+  def change_accountclass(%Accountclass{} = accountclass, attrs \\ %{}) do
+    Accountclass.changeset(accountclass, attrs)
+  end
+
+  alias Sportyweb.Accounting.Accountgroup
+
+  @doc """
+  Returns the list of accountgroups.
+
+  ## Examples
+
+      iex> list_accountgroups()
+      [%Accountgroup{}, ...]
+
+  """
+  def list_accountgroups do
+    Repo.all(Accountgroup)
+  end
+
+  @doc """
+  Gets a single accountgroup.
+
+  Raises `Ecto.NoResultsError` if the Accountgroup does not exist.
+
+  ## Examples
+
+      iex> get_accountgroup!(123)
+      %Accountgroup{}
+
+      iex> get_accountgroup!(456)
+      ** (Ecto.NoResultsError)
+
+  """
+  def get_accountgroup!(id), do: Repo.get!(Accountgroup, id)
+
+  @doc """
+  Creates a accountgroup.
+
+  ## Examples
+
+      iex> create_accountgroup(%{field: value})
+      {:ok, %Accountgroup{}}
+
+      iex> create_accountgroup(%{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def create_accountgroup(attrs \\ %{}) do
+    %Accountgroup{}
+    |> Accountgroup.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  @doc """
+  Updates a accountgroup.
+
+  ## Examples
+
+      iex> update_accountgroup(accountgroup, %{field: new_value})
+      {:ok, %Accountgroup{}}
+
+      iex> update_accountgroup(accountgroup, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_accountgroup(%Accountgroup{} = accountgroup, attrs) do
+    accountgroup
+    |> Accountgroup.changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Deletes a accountgroup.
+
+  ## Examples
+
+      iex> delete_accountgroup(accountgroup)
+      {:ok, %Accountgroup{}}
+
+      iex> delete_accountgroup(accountgroup)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def delete_accountgroup(%Accountgroup{} = accountgroup) do
+    Repo.delete(accountgroup)
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for tracking accountgroup changes.
+
+  ## Examples
+
+      iex> change_accountgroup(accountgroup)
+      %Ecto.Changeset{data: %Accountgroup{}}
+
+  """
+  def change_accountgroup(%Accountgroup{} = accountgroup, attrs \\ %{}) do
+    Accountgroup.changeset(accountgroup, attrs)
+  end
+
+  alias Sportyweb.Accounting.Accounttype
+
+  @doc """
+  Returns the list of accounttypes.
+
+  ## Examples
+
+      iex> list_accounttypes()
+      [%Accounttype{}, ...]
+
+  """
+  def list_accounttypes do
+    Repo.all(Accounttype)
+  end
+
+  @doc """
+  Gets a single accounttype.
+
+  Raises `Ecto.NoResultsError` if the Accounttype does not exist.
+
+  ## Examples
+
+      iex> get_accounttype!(123)
+      %Accounttype{}
+
+      iex> get_accounttype!(456)
+      ** (Ecto.NoResultsError)
+
+  """
+  def get_accounttype!(id), do: Repo.get!(Accounttype, id)
+
+  @doc """
+  Creates a accounttype.
+
+  ## Examples
+
+      iex> create_accounttype(%{field: value})
+      {:ok, %Accounttype{}}
+
+      iex> create_accounttype(%{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def create_accounttype(attrs \\ %{}) do
+    %Accounttype{}
+    |> Accounttype.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  @doc """
+  Updates a accounttype.
+
+  ## Examples
+
+      iex> update_accounttype(accounttype, %{field: new_value})
+      {:ok, %Accounttype{}}
+
+      iex> update_accounttype(accounttype, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_accounttype(%Accounttype{} = accounttype, attrs) do
+    accounttype
+    |> Accounttype.changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Deletes a accounttype.
+
+  ## Examples
+
+      iex> delete_accounttype(accounttype)
+      {:ok, %Accounttype{}}
+
+      iex> delete_accounttype(accounttype)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def delete_accounttype(%Accounttype{} = accounttype) do
+    Repo.delete(accounttype)
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for tracking accounttype changes.
+
+  ## Examples
+
+      iex> change_accounttype(accounttype)
+      %Ecto.Changeset{data: %Accounttype{}}
+
+  """
+  def change_accounttype(%Accounttype{} = accounttype, attrs \\ %{}) do
+    Accounttype.changeset(accounttype, attrs)
+  end
 end
