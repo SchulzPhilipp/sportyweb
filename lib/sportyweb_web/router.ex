@@ -230,6 +230,17 @@ defmodule SportywebWeb.Router do
 
       live "/subsidies/:id", SubsidyLive.Show, :show
 
+      # Chart of Accounts (Each belongs to a club)
+
+      live "/chartofaccounts", ChartofaccountLive.Index, :index_root
+      live "/clubs/:club_id/chartofaccounts", ChartofaccountLive.Index, :index
+
+      live "/clubs/:club_id/chartofaccounts/new", ChartofaccountLive.NewEdit, :new
+      live "/chartofaccounts/:id/edit", ChartofaccountLive.NewEdit, :edit
+
+      live "/chartofaccounts/:id", ChartofaccountLive.Show, :show
+
+
       # Roles
 
       live "/clubs/:club_id/roles", RoleLive.Index, :index
