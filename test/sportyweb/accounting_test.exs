@@ -116,6 +116,7 @@ defmodule Sportyweb.AccountingTest do
 
     test "list_accounts/0 returns all accounts" do
       account = account_fixture()
+      account = Sportyweb.Repo.preload(account, [:accountclass, :accountgroup, :accounttype])
       assert Accounting.list_accounts() == [account]
     end
 

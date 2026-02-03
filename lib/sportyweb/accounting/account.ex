@@ -28,6 +28,6 @@ defmodule Sportyweb.Accounting.Account do
     |> validate_required([:accountnumber, :accountname, :accountbalance])
     |> validate_length(:accountnumber, max: 8)
     |> validate_length(:accountname, max: 250)
-    |> validate_currency(:accountbalance, :EUR)
+    #|> validate_currency(:accountbalance, :EUR)
   end
 end

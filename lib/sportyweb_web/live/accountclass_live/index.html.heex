@@ -1,0 +1,42 @@
+<.header>
+  Listing Accountclasses
+  <:actions>
+    <.link patch={~p"/accountclasses/new"}>
+      <.button>New Accountclass</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.table
+  id="accountclasses"
+  rows={@streams.accountclasses}
+  row_click={fn {_id, accountclass} -> JS.navigate(~p"/accountclasses/#{accountclass}") end}
+>
+  <:col :let={{_id, accountclass}} label="Accountclassnumber">{accountclass.accountclassnumber}</:col>
+  <:col :let={{_id, accountclass}} label="Accountclassname">{accountclass.accountclassname}</:col>
+  <:action :let={{_id, accountclass}}>
+    <div class="sr-only">
+      <.link navigate={~p"/accountclasses/#{accountclass}"}>Show</.link>
+    </div>
+    <.link patch={~p"/accountclasses/#{accountclass}/edit"}>Edit</.link>
+  </:action>
+  <:action :let={{id, accountclass}}>
+    <.link
+      phx-click={JS.push("delete", value: %{id: accountclass.id}) |> hide("##{id}")}
+      data-confirm="Are you sure?"
+    >
+      Delete
+    </.link>
+  </:action>
+</.table>
+
+<.modal :if={@live_action in [:new, :edit]} id="accountclass-modal" show on_cancel={JS.patch(~p"/accountclasses")}>
+  <.live_component
+    module={SportywebWeb.AccountclassLive.FormComponent}
+    id={@accountclass.id || :new}
+    title={@page_title}
+    action={@live_action}
+    accountclass={@accountclass}
+    patch={~p"/accountclasses"}
+  />
+</.modal>

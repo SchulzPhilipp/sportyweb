@@ -462,7 +462,9 @@ defmodule Sportyweb.Accounting do
 
   """
   def list_accounts do
+    #Repo.all(from i in Account, preload: [:accountclass, :accountgroup, :accounttype])
     Repo.all(Account)
+    |> Repo.preload([:accountclass, :accountgroup, :accounttype])
   end
 
   @doc """

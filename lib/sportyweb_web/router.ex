@@ -230,6 +230,38 @@ defmodule SportywebWeb.Router do
 
       live "/subsidies/:id", SubsidyLive.Show, :show
 
+      # Accounts (Chart of Accounts, Each belongs to a club)
+      live "/accounts", AccountLive.Index, :index
+      live "/accounts/new", AccountLive.Index, :new
+      live "/accounts/:id/edit", AccountLive.Index, :edit
+
+      live "/accounts/:id", AccountLive.Show, :show
+      live "/accounts/:id/show/edit", AccountLive.Show, :edit
+
+      # Accountclasses (Chart of Accounts, Each belongs to a club)
+      live "/accountclasses", AccountclassLive.Index, :index
+      live "/accountclasses/new", AccountclassLive.Index, :new
+      live "/accountclasses/:id/edit", AccountclassLive.Index, :edit
+
+      live "/accountclasses/:id", AccountclassLive.Show, :show
+      live "/accountclasses/:id/show/edit", AccountclassLive.Show, :edit
+
+      # Accountgroups (Chart of Accounts, Each belongs to a club)
+      live "/accountgroups", AccountgroupLive.Index, :index
+      live "/accountgroups/new", AccountgroupLive.Index, :new
+      live "/accountgroups/:id/edit", AccountgroupLive.Index, :edit
+
+      live "/accountgroups/:id", AccountgroupLive.Show, :show
+      live "/accountgroups/:id/show/edit", AccountgroupLive.Show, :edit
+
+      # Accounttypes (Chart of Accounts, Each belongs to a club)
+      live "/accounttypes", AccounttypeLive.Index, :index
+      live "/accounttypes/new", AccounttypeLive.Index, :new
+      live "/accounttypes/:id/edit", AccounttypeLive.Index, :edit
+
+      live "/accounttypes/:id", AccounttypeLive.Show, :show
+      live "/accounttypes/:id/show/edit", AccounttypeLive.Show, :edit
+
       # Chart of Accounts (Each belongs to a club)
 
       live "/chartofaccounts", ChartofaccountLive.Index, :index_root

@@ -1,0 +1,27 @@
+<.header>
+  Accountclass {@accountclass.id}
+  <:subtitle>This is a accountclass record from your database.</:subtitle>
+  <:actions>
+    <.link patch={~p"/accountclasses/#{@accountclass}/show/edit"} phx-click={JS.push_focus()}>
+      <.button>Edit accountclass</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.list>
+  <:item title="Accountclassnumber">{@accountclass.accountclassnumber}</:item>
+  <:item title="Accountclassname">{@accountclass.accountclassname}</:item>
+</.list>
+
+<.back navigate={~p"/accountclasses"}>Back to accountclasses</.back>
+
+<.modal :if={@live_action == :edit} id="accountclass-modal" show on_cancel={JS.patch(~p"/accountclasses/#{@accountclass}")}>
+  <.live_component
+    module={SportywebWeb.AccountclassLive.FormComponent}
+    id={@accountclass.id}
+    title={@page_title}
+    action={@live_action}
+    accountclass={@accountclass}
+    patch={~p"/accountclasses/#{@accountclass}"}
+  />
+</.modal>
