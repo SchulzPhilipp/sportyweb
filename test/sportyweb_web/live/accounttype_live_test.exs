@@ -1,5 +1,5 @@
 defmodule SportywebWeb.AccounttypeLiveTest do
-  use SportywebWeb.ConnCase
+  use SportywebWeb.ConnCase, async: true
 
   import Phoenix.LiveViewTest
   import Sportyweb.AccountingFixtures
@@ -8,9 +8,9 @@ defmodule SportywebWeb.AccounttypeLiveTest do
   import Sportyweb.RBAC.RoleFixtures
   import Sportyweb.RBAC.UserRoleFixtures
 
-  @create_attrs %{accounttypename: "some accounttypename"}
-  @update_attrs %{accounttypename: "some updated accounttypename"}
-  @invalid_attrs %{accounttypename: nil}
+  @create_attrs %{accounttypename: "some accounttypename", accounttypecode: "code"}
+  @update_attrs %{accounttypename: "some updated accounttypename", accounttypecode: "updatedcode"}
+  @invalid_attrs %{accounttypename: nil, accounttypecode: nil}
 
   setup do
     user = user_fixture()
@@ -100,7 +100,10 @@ defmodule SportywebWeb.AccounttypeLiveTest do
 
       {:ok, index_live, _html} = live(conn, ~p"/accounttypes")
 
-      assert index_live |> element("#accounttypes-#{accounttype.id} a", "Delete") |> render_click()
+      assert index_live
+             |> element("#accounttypes-#{accounttype.id} a", "Delete")
+             |> render_click()
+
       refute has_element?(index_live, "#accounttypes-#{accounttype.id}")
     end
   end

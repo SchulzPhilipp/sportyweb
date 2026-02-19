@@ -12,7 +12,9 @@
   rows={@streams.accountclasses}
   row_click={fn {_id, accountclass} -> JS.navigate(~p"/accountclasses/#{accountclass}") end}
 >
-  <:col :let={{_id, accountclass}} label="Accountclassnumber">{accountclass.accountclassnumber}</:col>
+  <:col :let={{_id, accountclass}} label="Accountclassnumber">
+    {accountclass.accountclassnumber}
+  </:col>
   <:col :let={{_id, accountclass}} label="Accountclassname">{accountclass.accountclassname}</:col>
   <:action :let={{_id, accountclass}}>
     <div class="sr-only">
@@ -30,7 +32,12 @@
   </:action>
 </.table>
 
-<.modal :if={@live_action in [:new, :edit]} id="accountclass-modal" show on_cancel={JS.patch(~p"/accountclasses")}>
+<.modal
+  :if={@live_action in [:new, :edit]}
+  id="accountclass-modal"
+  show
+  on_cancel={JS.patch(~p"/accountclasses")}
+>
   <.live_component
     module={SportywebWeb.AccountclassLive.FormComponent}
     id={@accountclass.id || :new}

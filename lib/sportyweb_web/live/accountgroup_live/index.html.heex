@@ -12,7 +12,6 @@
   rows={@streams.accountgroups}
   row_click={fn {_id, accountgroup} -> JS.navigate(~p"/accountgroups/#{accountgroup}") end}
 >
-  <:col :let={{_id, accountgroup}} label="Accountgroupnumber">{accountgroup.accountgroupnumber}</:col>
   <:col :let={{_id, accountgroup}} label="Accountgroupname">{accountgroup.accountgroupname}</:col>
   <:action :let={{_id, accountgroup}}>
     <div class="sr-only">
@@ -30,7 +29,12 @@
   </:action>
 </.table>
 
-<.modal :if={@live_action in [:new, :edit]} id="accountgroup-modal" show on_cancel={JS.patch(~p"/accountgroups")}>
+<.modal
+  :if={@live_action in [:new, :edit]}
+  id="accountgroup-modal"
+  show
+  on_cancel={JS.patch(~p"/accountgroups")}
+>
   <.live_component
     module={SportywebWeb.AccountgroupLive.FormComponent}
     id={@accountgroup.id || :new}

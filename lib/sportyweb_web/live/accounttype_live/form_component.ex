@@ -20,6 +20,7 @@ defmodule SportywebWeb.AccounttypeLive.FormComponent do
         phx-submit="save"
       >
         <.input field={@form[:accounttypename]} type="text" label="Accounttypename" />
+        <.input field={@form[:accounttypecode]} type="text" label="Accounttypecode" />
         <:actions>
           <.button phx-disable-with="Saving...">Save Accounttype</.button>
         </:actions>

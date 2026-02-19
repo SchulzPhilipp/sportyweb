@@ -24,10 +24,25 @@ defmodule Sportyweb.Accounting.Account do
   @doc false
   def changeset(account, attrs) do
     account
-    |> cast(attrs, [:accountclass_id, :accountgroup_id, :accounttype_id, :accountnumber, :accountname, :accountbalance])
-    |> validate_required([:accountnumber, :accountname, :accountbalance])
+    |> cast(attrs, [
+      :accountclass_id,
+      :accountgroup_id,
+      :accounttype_id,
+      :accountnumber,
+      :accountname,
+      :accountbalance
+    ])
+    |> validate_required([
+      :accountclass_id,
+      :accountgroup_id,
+      :accounttype_id,
+      :accountnumber,
+      :accountname,
+      :accountbalance
+    ])
     |> validate_length(:accountnumber, max: 8)
     |> validate_length(:accountname, max: 250)
-    #|> validate_currency(:accountbalance, :EUR)
+    # |> validate_currency(:accountbalance, :EUR)
+    |> unique_constraint(:accountnumber, name: :accounts_accountnumber_index)
   end
 end

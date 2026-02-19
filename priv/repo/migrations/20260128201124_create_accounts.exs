@@ -8,9 +8,14 @@ defmodule Sportyweb.Repo.Migrations.CreateAccounts do
       add :accountname, :string, null: false
       add :accountbalance, :money_with_currency
 
-      add :accountclass_id, references(:accountclasses, on_delete: :restrict, type: :binary_id), null: false
-      add :accountgroup_id, references(:accountgroups, on_delete: :restrict, type: :binary_id), null: false
-      add :accounttype_id, references(:accounttypes, on_delete: :restrict, type: :binary_id), null: false
+      add :accountclass_id, references(:accountclasses, on_delete: :restrict, type: :binary_id),
+        null: false
+
+      add :accountgroup_id, references(:accountgroups, on_delete: :restrict, type: :binary_id),
+        null: false
+
+      add :accounttype_id, references(:accounttypes, on_delete: :restrict, type: :binary_id),
+        null: false
 
       timestamps(type: :utc_datetime)
     end
@@ -19,5 +24,6 @@ defmodule Sportyweb.Repo.Migrations.CreateAccounts do
     create index(:accounts, [:accountgroup_id])
     create index(:accounts, [:accounttype_id])
 
+    create unique_index(:accounts, [:accountnumber])
   end
 end

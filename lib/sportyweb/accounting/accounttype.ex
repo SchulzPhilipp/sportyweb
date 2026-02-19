@@ -10,6 +10,7 @@ defmodule Sportyweb.Accounting.Accounttype do
     has_many(:accounts, Account)
 
     field :accounttypename, :string
+    field :accounttypecode, :string
 
     timestamps(type: :utc_datetime)
   end
@@ -17,7 +18,7 @@ defmodule Sportyweb.Accounting.Accounttype do
   @doc false
   def changeset(accounttype, attrs) do
     accounttype
-    |> cast(attrs, [:accounttypename])
+    |> cast(attrs, [:accounttypename, :accounttypecode])
     |> validate_required([:accounttypename])
   end
 end

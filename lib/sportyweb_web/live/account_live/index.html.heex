@@ -1,8 +1,8 @@
 <.header>
-  Listing Accounts
+  Kontenplan
   <:actions>
     <.link patch={~p"/accounts/new"}>
-      <.button>New Account</.button>
+      <.button>Neues Konto</.button>
     </.link>
   </:actions>
 </.header>
@@ -12,12 +12,12 @@
   rows={@streams.accounts}
   row_click={fn {_id, account} -> JS.navigate(~p"/accounts/#{account}") end}
 >
-  <:col :let={{_id, account}} label="Accountnumber">{account.accountnumber}</:col>
-  <:col :let={{_id, account}} label="Accountname">{account.accountname}</:col>
-  <:col :let={{_id, account}} label="Accountbalance">{account.accountbalance}</:col>
-  <:col :let={{_id, account}} label="Accountclass">{account.accountclass.accountclassname}</:col>
-  <:col :let={{_id, account}} label="Accountgroup">{account.accountgroup.accountgroupname}</:col>
-  <:col :let={{_id, account}} label="Accounttype">{account.accounttype.accounttypename}</:col>
+  <:col :let={{_id, account}} label="Kontonummer">{account.accountnumber}</:col>
+  <:col :let={{_id, account}} label="Kontobezeichnung">{account.accountname}</:col>
+  <:col :let={{_id, account}} label="Saldo">{account.accountbalance}</:col>
+  <:col :let={{_id, account}} label="Kontoklasse">{account.accountclass.accountclassname}</:col>
+  <:col :let={{_id, account}} label="Kontogruppe">{account.accountgroup.accountgroupname}</:col>
+  <:col :let={{_id, account}} label="Kontotyp">{account.accounttype.accounttypename}</:col>
   <:action :let={{_id, account}}>
     <div class="sr-only">
       <.link navigate={~p"/accounts/#{account}"}>Show</.link>
@@ -27,14 +27,19 @@
   <:action :let={{id, account}}>
     <.link
       phx-click={JS.push("delete", value: %{id: account.id}) |> hide("##{id}")}
-      data-confirm="Are you sure?"
+      data-confirm="Sind Sie sich sicher?"
     >
       Delete
     </.link>
   </:action>
 </.table>
 
-<.modal :if={@live_action in [:new, :edit]} id="account-modal" show on_cancel={JS.patch(~p"/accounts")}>
+<.modal
+  :if={@live_action in [:new, :edit]}
+  id="account-modal"
+  show
+  on_cancel={JS.patch(~p"/accounts")}
+>
   <.live_component
     module={SportywebWeb.AccountLive.FormComponent}
     id={@account.id || :new}

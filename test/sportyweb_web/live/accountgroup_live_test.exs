@@ -1,5 +1,5 @@
 defmodule SportywebWeb.AccountgroupLiveTest do
-  use SportywebWeb.ConnCase
+  use SportywebWeb.ConnCase, async: true
 
   import Phoenix.LiveViewTest
   import Sportyweb.AccountingFixtures
@@ -8,9 +8,9 @@ defmodule SportywebWeb.AccountgroupLiveTest do
   import Sportyweb.RBAC.RoleFixtures
   import Sportyweb.RBAC.UserRoleFixtures
 
-  @create_attrs %{accountgroupnumber: "01", accountgroupname: "some accountgroupname"}
-  @update_attrs %{accountgroupnumber: "02", accountgroupname: "some updated accountgroupname"}
-  @invalid_attrs %{accountgroupnumber: nil, accountgroupname: nil}
+  @create_attrs %{accountgroupname: "some another accountgroupname"}
+  @update_attrs %{accountgroupname: "some updated accountgroupname"}
+  @invalid_attrs %{accountgroupname: nil}
 
   setup do
     user = user_fixture()
@@ -36,13 +36,21 @@ defmodule SportywebWeb.AccountgroupLiveTest do
       {:ok, _index_live, html} = live(conn, ~p"/accountgroups")
 
       assert html =~ "Listing Accountgroups"
-      assert html =~ accountgroup.accountgroupnumber
+      assert html =~ accountgroup.accountgroupname
     end
 
     test "saves new accountgroup", %{conn: conn, user: user} do
       {:error, _} = live(conn, ~p"/accountgroups")
 
       conn = conn |> log_in_user(user)
+
+      # accountclass = Sportyweb.AccountingFixtures.accountclass_fixture()
+      # accounttype = Sportyweb.AccountingFixtures.accounttype_fixture()
+
+      # valid_attrs =
+      # @create_attrs
+      # |> Map.put(:accountclass_id, accountclass.id)
+      # |> Map.put(:accounttype_id, accounttype.id)
 
       {:ok, index_live, _html} = live(conn, ~p"/accountgroups")
 
@@ -63,7 +71,7 @@ defmodule SportywebWeb.AccountgroupLiveTest do
 
       html = render(index_live)
       assert html =~ "Accountgroup created successfully"
-      assert html =~ "01"
+      assert html =~ "some another accountgroupname"
     end
 
     test "updates accountgroup in listing", %{conn: conn, user: user, accountgroup: accountgroup} do
@@ -73,7 +81,9 @@ defmodule SportywebWeb.AccountgroupLiveTest do
 
       {:ok, index_live, _html} = live(conn, ~p"/accountgroups")
 
-      assert index_live |> element("#accountgroups-#{accountgroup.id} a", "Edit") |> render_click() =~
+      assert index_live
+             |> element("#accountgroups-#{accountgroup.id} a", "Edit")
+             |> render_click() =~
                "Edit Accountgroup"
 
       assert_patch(index_live, ~p"/accountgroups/#{accountgroup}/edit")
@@ -90,7 +100,7 @@ defmodule SportywebWeb.AccountgroupLiveTest do
 
       html = render(index_live)
       assert html =~ "Accountgroup updated successfully"
-      assert html =~ "02"
+      assert html =~ "some updated accountgroupname"
     end
 
     test "deletes accountgroup in listing", %{conn: conn, user: user, accountgroup: accountgroup} do
@@ -100,7 +110,10 @@ defmodule SportywebWeb.AccountgroupLiveTest do
 
       {:ok, index_live, _html} = live(conn, ~p"/accountgroups")
 
-      assert index_live |> element("#accountgroups-#{accountgroup.id} a", "Delete") |> render_click()
+      assert index_live
+             |> element("#accountgroups-#{accountgroup.id} a", "Delete")
+             |> render_click()
+
       refute has_element?(index_live, "#accountgroups-#{accountgroup.id}")
     end
   end
@@ -116,10 +129,14 @@ defmodule SportywebWeb.AccountgroupLiveTest do
       {:ok, _show_live, html} = live(conn, ~p"/accountgroups/#{accountgroup}")
 
       assert html =~ "Show Accountgroup"
-      assert html =~ accountgroup.accountgroupnumber
+      assert html =~ accountgroup.accountgroupname
     end
 
-    test "updates accountgroup within modal", %{conn: conn, user: user, accountgroup: accountgroup} do
+    test "updates accountgroup within modal", %{
+      conn: conn,
+      user: user,
+      accountgroup: accountgroup
+    } do
       {:error, _} = live(conn, ~p"/accountgroups/#{accountgroup}")
 
       conn = conn |> log_in_user(user)
@@ -142,7 +159,7 @@ defmodule SportywebWeb.AccountgroupLiveTest do
 
       html = render(show_live)
       assert html =~ "Accountgroup updated successfully"
-      assert html =~ "02"
+      assert html =~ "some updated accountgroupname"
     end
   end
 end

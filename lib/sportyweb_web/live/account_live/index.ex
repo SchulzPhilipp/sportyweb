@@ -7,8 +7,8 @@ defmodule SportywebWeb.AccountLive.Index do
   @impl true
   def mount(_params, _session, socket) do
     accounts =
-    Accounting.list_accounts()
-    |> Sportyweb.Repo.preload([:accountclass, :accountgroup, :accounttype])
+      Accounting.list_accounts()
+      |> Sportyweb.Repo.preload([:accountclass, :accountgroup, :accounttype])
 
     {:ok, stream(socket, :accounts, accounts)}
   end
@@ -19,9 +19,11 @@ defmodule SportywebWeb.AccountLive.Index do
   end
 
   defp apply_action(socket, :edit, %{"id" => id}) do
-    #Preload Data from references
+    # Preload Data from references
     account = Sportyweb.Accounting.get_account!(id)
-    |>Sportyweb.Repo.preload([:accountclass, :accountgroup, :accounttype])
+
+    account
+    |> Sportyweb.Repo.preload([:accountclass, :accountgroup, :accounttype])
 
     socket
     |> assign(:page_title, "Edit Account")
@@ -42,7 +44,7 @@ defmodule SportywebWeb.AccountLive.Index do
 
   @impl true
   def handle_info({SportywebWeb.AccountLive.FormComponent, {:saved, account}}, socket) do
-    #account = Sportyweb.Repo.preload(account, [:accountclass, :accountgroup, :accounttype])
+    account = Sportyweb.Repo.preload(account, [:accountclass, :accountgroup, :accounttype])
     {:noreply, stream_insert(socket, :accounts, account)}
   end
 

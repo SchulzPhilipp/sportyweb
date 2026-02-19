@@ -14,7 +14,12 @@
 
 <.back navigate={~p"/accounttypes"}>Back to accounttypes</.back>
 
-<.modal :if={@live_action == :edit} id="accounttype-modal" show on_cancel={JS.patch(~p"/accounttypes/#{@accounttype}")}>
+<.modal
+  :if={@live_action == :edit}
+  id="accounttype-modal"
+  show
+  on_cancel={JS.patch(~p"/accounttypes/#{@accounttype}")}
+>
   <.live_component
     module={SportywebWeb.AccounttypeLive.FormComponent}
     id={@accounttype.id}

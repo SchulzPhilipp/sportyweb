@@ -272,7 +272,6 @@ defmodule SportywebWeb.Router do
 
       live "/chartofaccounts/:id", ChartofaccountLive.Show, :show
 
-
       # Roles
 
       live "/clubs/:club_id/roles", RoleLive.Index, :index

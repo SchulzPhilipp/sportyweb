@@ -22,9 +22,27 @@ defmodule SportywebWeb.AccountLive.FormComponent do
         <.input field={@form[:accountnumber]} type="text" label="Accountnumber" />
         <.input field={@form[:accountname]} type="text" label="Accountname" />
         <.input field={@form[:accountbalance]} type="text" label="Accountbalance" step="any" />
-        <.input field={@form[:accountclass_id]} type="select" label="Accountclass" options={@accountclasses_options} prompt="Bitte wählen..." />
-        <.input field={@form[:accountgroup_id]} type="select" label="Accountgroup" options={@accountgroups_options} prompt="Bitte wählen..." />
-        <.input field={@form[:accounttype_id]} type="select" label="Accounttype" options={@accounttypes_options} prompt="Bitte wählen..." />
+        <.input
+          field={@form[:accountclass_id]}
+          type="select"
+          label="Accountclass"
+          options={@accountclasses_options}
+          prompt="Bitte wählen..."
+        />
+        <.input
+          field={@form[:accountgroup_id]}
+          type="select"
+          label="Accountgroup"
+          options={@accountgroups_options}
+          prompt="Bitte wählen..."
+        />
+        <.input
+          field={@form[:accounttype_id]}
+          type="select"
+          label="Accounttype"
+          options={@accounttypes_options}
+          prompt="Bitte wählen..."
+        />
         <:actions>
           <.button phx-disable-with="Saving...">Save Account</.button>
         </:actions>
@@ -35,16 +53,21 @@ defmodule SportywebWeb.AccountLive.FormComponent do
 
   @impl true
   def update(%{account: account} = assigns, socket) do
-    #Lade die Auswahlmöglichkeiten für die Accountclasses, Accountgroups und Accounttypes
-    accountclasses_options = Sportyweb.Accounting.list_accountclasses()
-    |>Enum.map(&{&1.accountclassname, &1.id}) #Format für das Select: {"Accountclassnumber", "Anzeigename"}
+    # Lade die Auswahlmöglichkeiten für die Accountclasses, Accountgroups und Accounttypes
+    accountclasses_options =
+      Sportyweb.Accounting.list_accountclasses()
+      # Format für das Select: {"Anzeigename"}
+      |> Enum.map(&{&1.accountclassname, &1.id})
 
-    accountgroups_options = Sportyweb.Accounting.list_accountgroups()
-    |>Enum.map(&{&1.accountgroupname, &1.id}) #Format für das Select: {"Accountgroupnumber", "Anzeigename"}
+    accountgroups_options =
+      Sportyweb.Accounting.list_accountgroups()
+      # Format für das Select: {"Anzeigename"}
+      |> Enum.map(&{&1.accountgroupname, &1.id})
 
-    accounttypes_options = Sportyweb.Accounting.list_accounttypes()
-    |>Enum.map(&{&1.accounttypename, &1.id}) #Format für das Select: {"Anzeigename"}
-
+    accounttypes_options =
+      Sportyweb.Accounting.list_accounttypes()
+      # Format für das Select: {"Anzeigename"}
+      |> Enum.map(&{&1.accounttypename, &1.id})
 
     {:ok,
      socket
@@ -61,7 +84,10 @@ defmodule SportywebWeb.AccountLive.FormComponent do
   def handle_event("validate", %{"account" => account_params}, socket) do
     changeset =
       Accounting.change_account(socket.assigns.account, account_params)
-      |>Map.put(:action, :validate)
+
+    changeset
+    |> Map.put(:action, :validate)
+
     {:noreply, assign(socket, form: to_form(changeset, action: :validate))}
   end
 
@@ -81,7 +107,6 @@ defmodule SportywebWeb.AccountLive.FormComponent do
          |> push_patch(to: socket.assigns.patch)}
 
       {:error, %Ecto.Changeset{} = changeset} ->
-        IO.inspect(changeset.errors)
         {:noreply, assign(socket, form: to_form(changeset))}
     end
   end
@@ -98,7 +123,6 @@ defmodule SportywebWeb.AccountLive.FormComponent do
          |> push_patch(to: socket.assigns.patch)}
 
       {:error, %Ecto.Changeset{} = changeset} ->
-        IO.inspect(changeset.errors)
         {:noreply, assign(socket, form: to_form(changeset))}
     end
   end

@@ -1,5 +1,5 @@
 defmodule SportywebWeb.AccountclassLiveTest do
-  use SportywebWeb.ConnCase
+  use SportywebWeb.ConnCase, async: true
 
   import Phoenix.LiveViewTest
   import Sportyweb.AccountingFixtures
@@ -8,8 +8,14 @@ defmodule SportywebWeb.AccountclassLiveTest do
   import Sportyweb.RBAC.RoleFixtures
   import Sportyweb.RBAC.UserRoleFixtures
 
-  @create_attrs %{accountclassnumber: "some accountclassnumber", accountclassname: "some accountclassname"}
-  @update_attrs %{accountclassnumber: "some updated accountclassnumber", accountclassname: "some updated accountclassname"}
+  @create_attrs %{
+    accountclassnumber: "some accountclassnumber",
+    accountclassname: "some accountclassname"
+  }
+  @update_attrs %{
+    accountclassnumber: "some updated accountclassnumber",
+    accountclassname: "some updated accountclassname"
+  }
   @invalid_attrs %{accountclassnumber: nil, accountclassname: nil}
 
   setup do
@@ -73,7 +79,9 @@ defmodule SportywebWeb.AccountclassLiveTest do
 
       {:ok, index_live, _html} = live(conn, ~p"/accountclasses")
 
-      assert index_live |> element("#accountclasses-#{accountclass.id} a", "Edit") |> render_click() =~
+      assert index_live
+             |> element("#accountclasses-#{accountclass.id} a", "Edit")
+             |> render_click() =~
                "Edit Accountclass"
 
       assert_patch(index_live, ~p"/accountclasses/#{accountclass}/edit")
@@ -100,7 +108,10 @@ defmodule SportywebWeb.AccountclassLiveTest do
 
       {:ok, index_live, _html} = live(conn, ~p"/accountclasses")
 
-      assert index_live |> element("#accountclasses-#{accountclass.id} a", "Delete") |> render_click()
+      assert index_live
+             |> element("#accountclasses-#{accountclass.id} a", "Delete")
+             |> render_click()
+
       refute has_element?(index_live, "#accountclasses-#{accountclass.id}")
     end
   end
@@ -119,7 +130,11 @@ defmodule SportywebWeb.AccountclassLiveTest do
       assert html =~ accountclass.accountclassnumber
     end
 
-    test "updates accountclass within modal", %{conn: conn, user: user, accountclass: accountclass} do
+    test "updates accountclass within modal", %{
+      conn: conn,
+      user: user,
+      accountclass: accountclass
+    } do
       {:error, _} = live(conn, ~p"/accountclasses/#{accountclass}")
 
       conn = conn |> log_in_user(user)

@@ -12,14 +12,19 @@
   <:item title="Accountnumber">{@account.accountnumber}</:item>
   <:item title="Accountname">{@account.accountname}</:item>
   <:item title="Accountbalance">{@account.accountbalance}</:item>
-  <:item title="Accountclass"><%= @account.accountclass.accountclassname %> </:item>
-  <:item title="Accountgroup"><%= @account.accountgroup.accountgroupname %> </:item>
-  <:item title="Accounttype"> <%= @account.accounttype.accounttypename %></:item>
+  <:item title="Accountclass">{@account.accountclass.accountclassname}</:item>
+  <:item title="Accountgroup">{@account.accountgroup.accountgroupname}</:item>
+  <:item title="Accounttype">{@account.accounttype.accounttypename}</:item>
 </.list>
 
 <.back navigate={~p"/accounts"}>Back to accounts</.back>
 
-<.modal :if={@live_action == :edit} id="account-modal" show on_cancel={JS.patch(~p"/accounts/#{@account}")}>
+<.modal
+  :if={@live_action == :edit}
+  id="account-modal"
+  show
+  on_cancel={JS.patch(~p"/accounts/#{@account}")}
+>
   <.live_component
     module={SportywebWeb.AccountLive.FormComponent}
     id={@account.id}

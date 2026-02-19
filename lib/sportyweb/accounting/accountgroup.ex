@@ -9,7 +9,6 @@ defmodule Sportyweb.Accounting.Accountgroup do
   schema "accountgroups" do
     has_many(:accounts, Account)
 
-    field :accountgroupnumber, :string
     field :accountgroupname, :string
 
     timestamps(type: :utc_datetime)
@@ -18,7 +17,8 @@ defmodule Sportyweb.Accounting.Accountgroup do
   @doc false
   def changeset(accountgroup, attrs) do
     accountgroup
-    |> cast(attrs, [:accountgroupnumber, :accountgroupname])
-    |> validate_required([:accountgroupnumber, :accountgroupname])
+    |> cast(attrs, [:accountgroupname])
+    |> validate_required([:accountgroupname])
+    |> unique_constraint(:accountgroupname)
   end
 end

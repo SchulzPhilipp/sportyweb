@@ -122,7 +122,12 @@ defmodule Sportyweb.AccountingTest do
 
     test "get_account!/1 returns the account with given id" do
       account = account_fixture()
-      assert Accounting.get_account!(account.id) == account
+      result = Accounting.get_account!(account.id)
+      assert result.id == account.id
+      assert result.accountnumber == account.accountnumber
+
+      # account = Sportyweb.Repo.preload(account, [:accountclass, :accountgroup, :accounttype])
+      # assert Accounting.get_account!(account.id) == Repo.get(Account, account.id)
     end
 
     test "create_account/1 with valid data creates a account" do
@@ -130,8 +135,14 @@ defmodule Sportyweb.AccountingTest do
       accountgroup = accountgroup_fixture()
       accounttype = accounttype_fixture()
 
-      valid_attrs = %{accountnumber: "0815", accountname: "some accountname", accountbalance: Money.new(:EUR, 120),
-      accountclass_id: accountclass.id, accountgroup_id: accountgroup.id,accounttype_id: accounttype.id}
+      valid_attrs = %{
+        accountnumber: "0815",
+        accountname: "some accountname",
+        accountbalance: Money.new(:EUR, 120),
+        accountclass_id: accountclass.id,
+        accountgroup_id: accountgroup.id,
+        accounttype_id: accounttype.id
+      }
 
       assert {:ok, %Account{} = account} = Accounting.create_account(valid_attrs)
       assert account.accountnumber == "0815"
@@ -145,7 +156,13 @@ defmodule Sportyweb.AccountingTest do
 
     test "update_account/2 with valid data updates the account" do
       account = account_fixture()
-      update_attrs = %{accountnumber: "0815", accountname: "some updated accountname", accountbalance: Money.new(:EUR, 456)}
+      account = Sportyweb.Repo.preload(account, [:accountclass, :accountgroup, :accounttype])
+
+      update_attrs = %{
+        accountnumber: "0815",
+        accountname: "some updated accountname",
+        accountbalance: Money.new(:EUR, 456)
+      }
 
       assert {:ok, %Account{} = account} = Accounting.update_account(account, update_attrs)
       assert account.accountnumber == "0815"
@@ -155,6 +172,7 @@ defmodule Sportyweb.AccountingTest do
 
     test "update_account/2 with invalid data returns error changeset" do
       account = account_fixture()
+      account = Sportyweb.Repo.preload(account, [:accountclass, :accountgroup, :accounttype])
       assert {:error, %Ecto.Changeset{}} = Accounting.update_account(account, @invalid_attrs)
       assert account == Accounting.get_account!(account.id)
     end
@@ -167,6 +185,7 @@ defmodule Sportyweb.AccountingTest do
 
     test "change_account/1 returns a account changeset" do
       account = account_fixture()
+      account = Sportyweb.Repo.preload(account, [:accountclass, :accountgroup, :accounttype])
       assert %Ecto.Changeset{} = Accounting.change_account(account)
     end
   end
@@ -204,14 +223,19 @@ defmodule Sportyweb.AccountingTest do
       accountclass = accountclass_fixture()
       update_attrs = %{accountclassnumber: "0", accountclassname: "some updated accountclassname"}
 
-      assert {:ok, %Accountclass{} = accountclass} = Accounting.update_accountclass(accountclass, update_attrs)
+      assert {:ok, %Accountclass{} = accountclass} =
+               Accounting.update_accountclass(accountclass, update_attrs)
+
       assert accountclass.accountclassnumber == "0"
       assert accountclass.accountclassname == "some updated accountclassname"
     end
 
     test "update_accountclass/2 with invalid data returns error changeset" do
       accountclass = accountclass_fixture()
-      assert {:error, %Ecto.Changeset{}} = Accounting.update_accountclass(accountclass, @invalid_attrs)
+
+      assert {:error, %Ecto.Changeset{}} =
+               Accounting.update_accountclass(accountclass, @invalid_attrs)
+
       assert accountclass == Accounting.get_accountclass!(accountclass.id)
     end
 
@@ -232,7 +256,7 @@ defmodule Sportyweb.AccountingTest do
 
     import Sportyweb.AccountingFixtures
 
-    @invalid_attrs %{accountgroupnumber: nil, accountgroupname: nil}
+    @invalid_attrs %{accountgroupname: nil}
 
     test "list_accountgroups/0 returns all accountgroups" do
       accountgroup = accountgroup_fixture()
@@ -245,10 +269,16 @@ defmodule Sportyweb.AccountingTest do
     end
 
     test "create_accountgroup/1 with valid data creates a accountgroup" do
-      valid_attrs = %{accountgroupnumber: "08", accountgroupname: "some accountgroupname"}
+      accountclass = accountclass_fixture()
+      accounttype = accounttype_fixture()
+
+      valid_attrs = %{
+        accountgroupname: "some accountgroupname",
+        accountclass_id: accountclass.id,
+        accounttype_id: accounttype.id
+      }
 
       assert {:ok, %Accountgroup{} = accountgroup} = Accounting.create_accountgroup(valid_attrs)
-      assert accountgroup.accountgroupnumber == "08"
       assert accountgroup.accountgroupname == "some accountgroupname"
     end
 
@@ -258,16 +288,20 @@ defmodule Sportyweb.AccountingTest do
 
     test "update_accountgroup/2 with valid data updates the accountgroup" do
       accountgroup = accountgroup_fixture()
-      update_attrs = %{accountgroupnumber: "09", accountgroupname: "some updated accountgroupname"}
+      update_attrs = %{accountgroupname: "some updated accountgroupname"}
 
-      assert {:ok, %Accountgroup{} = accountgroup} = Accounting.update_accountgroup(accountgroup, update_attrs)
-      assert accountgroup.accountgroupnumber == "09"
+      assert {:ok, %Accountgroup{} = accountgroup} =
+               Accounting.update_accountgroup(accountgroup, update_attrs)
+
       assert accountgroup.accountgroupname == "some updated accountgroupname"
     end
 
     test "update_accountgroup/2 with invalid data returns error changeset" do
       accountgroup = accountgroup_fixture()
-      assert {:error, %Ecto.Changeset{}} = Accounting.update_accountgroup(accountgroup, @invalid_attrs)
+
+      assert {:error, %Ecto.Changeset{}} =
+               Accounting.update_accountgroup(accountgroup, @invalid_attrs)
+
       assert accountgroup == Accounting.get_accountgroup!(accountgroup.id)
     end
 
@@ -301,7 +335,7 @@ defmodule Sportyweb.AccountingTest do
     end
 
     test "create_accounttype/1 with valid data creates a accounttype" do
-      valid_attrs = %{accounttypename: "some accounttypename"}
+      valid_attrs = %{accounttypename: "some accounttypename", accounttypecode: "ABK"}
 
       assert {:ok, %Accounttype{} = accounttype} = Accounting.create_accounttype(valid_attrs)
       assert accounttype.accounttypename == "some accounttypename"
@@ -313,15 +347,20 @@ defmodule Sportyweb.AccountingTest do
 
     test "update_accounttype/2 with valid data updates the accounttype" do
       accounttype = accounttype_fixture()
-      update_attrs = %{accounttypename: "some updated accounttypename"}
+      update_attrs = %{accounttypename: "some updated accounttypename", accounttypecode: "PBK"}
 
-      assert {:ok, %Accounttype{} = accounttype} = Accounting.update_accounttype(accounttype, update_attrs)
+      assert {:ok, %Accounttype{} = accounttype} =
+               Accounting.update_accounttype(accounttype, update_attrs)
+
       assert accounttype.accounttypename == "some updated accounttypename"
     end
 
     test "update_accounttype/2 with invalid data returns error changeset" do
       accounttype = accounttype_fixture()
-      assert {:error, %Ecto.Changeset{}} = Accounting.update_accounttype(accounttype, @invalid_attrs)
+
+      assert {:error, %Ecto.Changeset{}} =
+               Accounting.update_accounttype(accounttype, @invalid_attrs)
+
       assert accounttype == Accounting.get_accounttype!(accounttype.id)
     end
 

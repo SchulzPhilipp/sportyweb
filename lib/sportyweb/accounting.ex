@@ -462,8 +462,10 @@ defmodule Sportyweb.Accounting do
 
   """
   def list_accounts do
-    #Repo.all(from i in Account, preload: [:accountclass, :accountgroup, :accounttype])
-    Repo.all(Account)
+    # Repo.all(from i in Account, preload: [:accountclass, :accountgroup, :accounttype])
+    accounts = Repo.all(Account)
+
+    accounts
     |> Repo.preload([:accountclass, :accountgroup, :accounttype])
   end
 
@@ -481,7 +483,12 @@ defmodule Sportyweb.Accounting do
       ** (Ecto.NoResultsError)
 
   """
-  def get_account!(id), do: Repo.get!(Account, id)
+  def get_account!(id) do
+    account = Repo.get!(Account, id)
+
+    account
+    |> Repo.preload([:accountgroup, :accountclass, :accounttype])
+  end
 
   @doc """
   Creates a account.

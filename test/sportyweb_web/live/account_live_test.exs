@@ -1,5 +1,5 @@
 defmodule SportywebWeb.AccountLiveTest do
-  use SportywebWeb.ConnCase
+  use SportywebWeb.ConnCase, async: true
 
   import Phoenix.LiveViewTest
   import Sportyweb.AccountingFixtures
@@ -8,9 +8,24 @@ defmodule SportywebWeb.AccountLiveTest do
   import Sportyweb.RBAC.RoleFixtures
   import Sportyweb.RBAC.UserRoleFixtures
 
-  @create_attrs %{accountnumber: "0815", accountname: "some accountname", accountbalance: "120.00"}
-  @update_attrs %{accountnumber: "0816", accountname: "some updated accountname", accountbalance: "456.00"}
-  @invalid_attrs %{accountnumber: nil, accountname: nil, accountbalance: nil, accountclass_id: nil, accountgroup_id: nil, accounttype_id: nil}
+  @create_attrs %{
+    accountnumber: "0815",
+    accountname: "some accountname",
+    accountbalance: "120.00"
+  }
+  @update_attrs %{
+    accountnumber: "0816",
+    accountname: "some updated accountname",
+    accountbalance: "456.00"
+  }
+  @invalid_attrs %{
+    accountnumber: nil,
+    accountname: nil,
+    accountbalance: nil,
+    accountclass_id: nil,
+    accountgroup_id: nil,
+    accounttype_id: nil
+  }
 
   setup do
     user = user_fixture()
@@ -44,20 +59,23 @@ defmodule SportywebWeb.AccountLiveTest do
 
       conn = conn |> log_in_user(user)
 
-      #create references
+      # create references
       accountclass = Sportyweb.AccountingFixtures.accountclass_fixture()
       accountgroup = Sportyweb.AccountingFixtures.accountgroup_fixture()
       accounttype = Sportyweb.AccountingFixtures.accounttype_fixture()
 
+      random_accountnumber = Integer.to_string(:rand.uniform(90_000))
+
       valid_attrs =
-      @create_attrs
-      |> Map.put(:accountclass_id, accountclass.id)
-      |> Map.put(:accountgroup_id, accountgroup.id)
-      |> Map.put(:accounttype_id, accounttype.id)
+        @create_attrs
+        |> Map.put(:accountnumber, random_accountnumber)
+        |> Map.put(:accountclass_id, accountclass.id)
+        |> Map.put(:accountgroup_id, accountgroup.id)
+        |> Map.put(:accounttype_id, accounttype.id)
 
       {:ok, index_live, _html} = live(conn, ~p"/accounts")
 
-      assert index_live |> element("a", "New Account") |> render_click() =~
+      assert index_live |> element("a", "Neues Konto") |> render_click() =~
                "New Account"
 
       assert_patch(index_live, ~p"/accounts/new")
@@ -66,7 +84,7 @@ defmodule SportywebWeb.AccountLiveTest do
              |> form("#account-form", account: @invalid_attrs)
              |> render_change() =~ "can&#39;t be blank"
 
-       assert index_live
+      assert index_live
              |> form("#account-form", account: valid_attrs)
              |> render_submit()
 
@@ -74,7 +92,7 @@ defmodule SportywebWeb.AccountLiveTest do
 
       html = render(index_live)
       assert html =~ "Account created successfully"
-      assert html =~ "0815"
+      assert html =~ random_accountnumber
     end
 
     test "updates account in listing", %{conn: conn, user: user, account: account} do
@@ -82,16 +100,16 @@ defmodule SportywebWeb.AccountLiveTest do
 
       conn = conn |> log_in_user(user)
 
-      #create references
+      # create references
       accountclass = Sportyweb.AccountingFixtures.accountclass_fixture()
       accountgroup = Sportyweb.AccountingFixtures.accountgroup_fixture()
       accounttype = Sportyweb.AccountingFixtures.accounttype_fixture()
 
       valid_attrs =
-      @update_attrs
-      |> Map.put(:accountclass_id, accountclass.id)
-      |> Map.put(:accountgroup_id, accountgroup.id)
-      |> Map.put(:accounttype_id, accounttype.id)
+        @update_attrs
+        |> Map.put(:accountclass_id, accountclass.id)
+        |> Map.put(:accountgroup_id, accountgroup.id)
+        |> Map.put(:accounttype_id, accounttype.id)
 
       {:ok, index_live, _html} = live(conn, ~p"/accounts")
 
@@ -105,15 +123,13 @@ defmodule SportywebWeb.AccountLiveTest do
              |> render_change() =~ "can&#39;t be blank"
 
       assert index_live
-            |> form("#account-form", account: valid_attrs)
-            |> render_submit()
-
+             |> form("#account-form", account: valid_attrs)
+             |> render_submit()
 
       assert_patch(index_live, ~p"/accounts")
       html = render(index_live)
       assert html =~ "Account updated successfully"
       assert html =~ "0816"
-
     end
 
     test "deletes account in listing", %{conn: conn, user: user, account: account} do
@@ -147,16 +163,16 @@ defmodule SportywebWeb.AccountLiveTest do
 
       conn = conn |> log_in_user(user)
 
-      #create references
+      # create references
       accountclass = Sportyweb.AccountingFixtures.accountclass_fixture()
       accountgroup = Sportyweb.AccountingFixtures.accountgroup_fixture()
       accounttype = Sportyweb.AccountingFixtures.accounttype_fixture()
 
       valid_attrs =
-      @update_attrs
-      |> Map.put(:accountclass_id, accountclass.id)
-      |> Map.put(:accountgroup_id, accountgroup.id)
-      |> Map.put(:accounttype_id, accounttype.id)
+        @update_attrs
+        |> Map.put(:accountclass_id, accountclass.id)
+        |> Map.put(:accountgroup_id, accountgroup.id)
+        |> Map.put(:accounttype_id, accounttype.id)
 
       {:ok, show_live, _html} = live(conn, ~p"/accounts/#{account}")
 

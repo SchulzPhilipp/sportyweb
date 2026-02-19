@@ -19,7 +19,6 @@ defmodule SportywebWeb.AccountgroupLive.FormComponent do
         phx-change="validate"
         phx-submit="save"
       >
-        <.input field={@form[:accountgroupnumber]} type="text" label="Accountgroupnumber" />
         <.input field={@form[:accountgroupname]} type="text" label="Accountgroupname" />
         <:actions>
           <.button phx-disable-with="Saving...">Save Accountgroup</.button>

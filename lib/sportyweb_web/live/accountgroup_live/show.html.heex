@@ -9,13 +9,17 @@
 </.header>
 
 <.list>
-  <:item title="Accountgroupnumber">{@accountgroup.accountgroupnumber}</:item>
   <:item title="Accountgroupname">{@accountgroup.accountgroupname}</:item>
 </.list>
 
 <.back navigate={~p"/accountgroups"}>Back to accountgroups</.back>
 
-<.modal :if={@live_action == :edit} id="accountgroup-modal" show on_cancel={JS.patch(~p"/accountgroups/#{@accountgroup}")}>
+<.modal
+  :if={@live_action == :edit}
+  id="accountgroup-modal"
+  show
+  on_cancel={JS.patch(~p"/accountgroups/#{@accountgroup}")}
+>
   <.live_component
     module={SportywebWeb.AccountgroupLive.FormComponent}
     id={@accountgroup.id}

@@ -10,16 +10,17 @@ defmodule SportywebWeb.AccountLive.Show do
 
   @impl true
   def handle_params(%{"id" => id}, _, socket) do
-    #Preload Data from references
+    # Preload Data from references
     item = Sportyweb.Accounting.get_account!(id)
-    |>Sportyweb.Repo.preload([:accountclass, :accountgroup, :accounttype])
+
+    item
+    |> Sportyweb.Repo.preload([:accountclass, :accountgroup, :accounttype])
 
     {:noreply,
      socket
      |> assign(:page_title, page_title(socket.assigns.live_action))
      |> assign(:account, item)
-     |> assign(:item, item)
-    }
+     |> assign(:item, item)}
   end
 
   defp page_title(:show), do: "Show Account"
