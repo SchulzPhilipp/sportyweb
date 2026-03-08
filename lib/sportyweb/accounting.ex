@@ -12,6 +12,9 @@ defmodule Sportyweb.Accounting do
   alias Sportyweb.Legal
   alias Sportyweb.Legal.Contract
   alias Sportyweb.Polymorphic.InternalEvent
+  alias Sportyweb.Accounting.Account
+  alias Sportyweb.Accounting.Accountclass
+  alias Sportyweb.Accounting.Accountgroup
 
   @doc """
   Returns a clubs list of transactions.
@@ -453,41 +456,40 @@ defmodule Sportyweb.Accounting do
   alias Sportyweb.Accounting.Account
 
   @doc """
-  Returns the list of accounts.
+  Returns a clubs list of accounts. Preloads associations.
 
   ## Examples
 
-      iex> list_accounts()
+      iex> list_accounts(1, [:accountclasses])
       [%Account{}, ...]
 
   """
-  def list_accounts do
-    # Repo.all(from i in Account, preload: [:accountclass, :accountgroup, :accounttype])
-    accounts = Repo.all(Account)
-
-    accounts
-    |> Repo.preload([:accountclass, :accountgroup, :accounttype])
+  def list_accounts(club_id, preloads \\ [:accountclass, :accountgroup]) do
+    Account
+    |> where([a], a.club_id == ^club_id)
+    |> order_by([a], asc: a.accountnumber) # Sortiert auf DB-Ebene
+    |> Repo.all()              # Holt die Liste aus der DB
+    |> Repo.preload(preloads) # Lädt die gewünschten Assoziationen nach
   end
 
   @doc """
-  Gets a single account.
+  Gets a single account. Preloads associations.
 
   Raises `Ecto.NoResultsError` if the Account does not exist.
 
   ## Examples
 
-      iex> get_account!(123)
+      iex> get_account!(123, [:club])
       %Account{}
 
-      iex> get_account!(456)
+      iex> get_account!(456, [:club])
       ** (Ecto.NoResultsError)
 
   """
-  def get_account!(id) do
-    account = Repo.get!(Account, id)
-
-    account
-    |> Repo.preload([:accountgroup, :accountclass, :accounttype])
+  def get_account!(id, preloads \\ [:club, :accountclass, :accountgroup]) do
+    Account
+    |> Repo.get!(id)
+    |> Repo.preload(preloads)
   end
 
   @doc """
@@ -509,7 +511,7 @@ defmodule Sportyweb.Accounting do
   end
 
   @doc """
-  Updates a account.
+  Updates an account.
 
   ## Examples
 
@@ -566,25 +568,33 @@ defmodule Sportyweb.Accounting do
       [%Accountclass{}, ...]
 
   """
-  def list_accountclasses do
-    Repo.all(Accountclass)
+  def list_accountclasses(club_id, preloads \\ [:club]) do
+    Accountclass
+    |> where([a], a.club_id == ^club_id)
+    |> order_by([a], a.accountclassnumber)
+    |> Repo.all()
+    |> Repo.preload(preloads)
   end
 
   @doc """
-  Gets a single accountclass.
+  Gets a single Accountclass. Preloads associations.
 
   Raises `Ecto.NoResultsError` if the Accountclass does not exist.
 
   ## Examples
 
-      iex> get_accountclass!(123)
-      %Accountclass{}
+      iex> get_accountclass!(123, [:club])
+      %Department{}
 
-      iex> get_accountclass!(456)
+      iex> get_accountclass!(456, [:club])
       ** (Ecto.NoResultsError)
 
   """
-  def get_accountclass!(id), do: Repo.get!(Accountclass, id)
+  def get_accountclass!(id, preloads \\ [:club]) do
+    Accountclass
+    |> Repo.get!(id)
+    |> Repo.preload(preloads)
+  end
 
   @doc """
   Creates a accountclass.
@@ -662,25 +672,33 @@ defmodule Sportyweb.Accounting do
       [%Accountgroup{}, ...]
 
   """
-  def list_accountgroups do
-    Repo.all(Accountgroup)
+  def list_accountgroups(club_id, preloads \\ [:club]) do
+    Accountgroup
+    |> where([a], a.club_id == ^club_id)
+    |> order_by([a], asc: a.accountgroupname) # Sortiert auf DB-Ebene
+    |> Repo.all()              # Holt die Liste aus der DB
+    |> Repo.preload(preloads) # Lädt die gewünschten Assoziationen nach
   end
 
   @doc """
-  Gets a single accountgroup.
+  Gets a single accountgroup. Preloads associations.
 
   Raises `Ecto.NoResultsError` if the Accountgroup does not exist.
 
   ## Examples
 
-      iex> get_accountgroup!(123)
-      %Accountgroup{}
+      iex> get_accountgroup!(123, [:club])
+      %Department{}
 
-      iex> get_accountgroup!(456)
+      iex> get_accountgroup!(456, [:club])
       ** (Ecto.NoResultsError)
 
   """
-  def get_accountgroup!(id), do: Repo.get!(Accountgroup, id)
+  def get_accountgroup!(id, preloads \\ [:club]) do
+    Accountgroup
+    |> Repo.get!(id)
+    |> Repo.preload(preloads)
+  end
 
   @doc """
   Creates a accountgroup.
@@ -747,99 +765,4 @@ defmodule Sportyweb.Accounting do
     Accountgroup.changeset(accountgroup, attrs)
   end
 
-  alias Sportyweb.Accounting.Accounttype
-
-  @doc """
-  Returns the list of accounttypes.
-
-  ## Examples
-
-      iex> list_accounttypes()
-      [%Accounttype{}, ...]
-
-  """
-  def list_accounttypes do
-    Repo.all(Accounttype)
-  end
-
-  @doc """
-  Gets a single accounttype.
-
-  Raises `Ecto.NoResultsError` if the Accounttype does not exist.
-
-  ## Examples
-
-      iex> get_accounttype!(123)
-      %Accounttype{}
-
-      iex> get_accounttype!(456)
-      ** (Ecto.NoResultsError)
-
-  """
-  def get_accounttype!(id), do: Repo.get!(Accounttype, id)
-
-  @doc """
-  Creates a accounttype.
-
-  ## Examples
-
-      iex> create_accounttype(%{field: value})
-      {:ok, %Accounttype{}}
-
-      iex> create_accounttype(%{field: bad_value})
-      {:error, %Ecto.Changeset{}}
-
-  """
-  def create_accounttype(attrs \\ %{}) do
-    %Accounttype{}
-    |> Accounttype.changeset(attrs)
-    |> Repo.insert()
-  end
-
-  @doc """
-  Updates a accounttype.
-
-  ## Examples
-
-      iex> update_accounttype(accounttype, %{field: new_value})
-      {:ok, %Accounttype{}}
-
-      iex> update_accounttype(accounttype, %{field: bad_value})
-      {:error, %Ecto.Changeset{}}
-
-  """
-  def update_accounttype(%Accounttype{} = accounttype, attrs) do
-    accounttype
-    |> Accounttype.changeset(attrs)
-    |> Repo.update()
-  end
-
-  @doc """
-  Deletes a accounttype.
-
-  ## Examples
-
-      iex> delete_accounttype(accounttype)
-      {:ok, %Accounttype{}}
-
-      iex> delete_accounttype(accounttype)
-      {:error, %Ecto.Changeset{}}
-
-  """
-  def delete_accounttype(%Accounttype{} = accounttype) do
-    Repo.delete(accounttype)
-  end
-
-  @doc """
-  Returns an `%Ecto.Changeset{}` for tracking accounttype changes.
-
-  ## Examples
-
-      iex> change_accounttype(accounttype)
-      %Ecto.Changeset{data: %Accounttype{}}
-
-  """
-  def change_accounttype(%Accounttype{} = accounttype, attrs \\ %{}) do
-    Accounttype.changeset(accounttype, attrs)
-  end
 end

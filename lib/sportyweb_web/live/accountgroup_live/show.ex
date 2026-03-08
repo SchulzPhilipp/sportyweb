@@ -4,18 +4,24 @@ defmodule SportywebWeb.AccountgroupLive.Show do
   alias Sportyweb.Accounting
 
   @impl true
-  def mount(_params, _session, socket) do
-    {:ok, socket}
+  def mount(%{"id" => id}, _session, socket) do
+    accountgroup = Accounting.get_accountgroup!(id)
+    {:ok, socket
+      |> assign(:club_navigation_current_item, :accountgroups)
+      |> assign(:accountgroup, accountgroup)
+      |> assign(:club, accountgroup.club)
+  }
   end
 
   @impl true
   def handle_params(%{"id" => id}, _, socket) do
+    accountgroup = Accounting.get_accountgroup!(id)
+
     {:noreply,
      socket
-     |> assign(:page_title, page_title(socket.assigns.live_action))
-     |> assign(:accountgroup, Accounting.get_accountgroup!(id))}
+     |> assign(:page_title, "Kontengruppe anzeigen")
+     |> assign(:accountgroup, accountgroup)
+     |> assign(:club, accountgroup.club)}
   end
 
-  defp page_title(:show), do: "Show Accountgroup"
-  defp page_title(:edit), do: "Edit Accountgroup"
 end

@@ -3,10 +3,22 @@ defmodule SportywebWeb.AccountgroupLive.Index do
 
   alias Sportyweb.Accounting
   alias Sportyweb.Accounting.Accountgroup
+  alias Sportyweb.Organization
+
+  @impl true
+  def mount(%{"club_id" => club_id}, _session, socket) do
+    accountgroups = Accounting.list_accountgroups(club_id)
+
+    {:ok,
+    socket
+    |> assign(:has_accountgroups?, accountgroups != [])
+    |> assign(:club_navigation_current_item, :accountgroups)
+    |> stream(:accountgroups, accountgroups)}
+  end
 
   @impl true
   def mount(_params, _session, socket) do
-    {:ok, stream(socket, :accountgroups, Accounting.list_accountgroups())}
+    {:ok, socket}
   end
 
   @impl true
@@ -14,34 +26,16 @@ defmodule SportywebWeb.AccountgroupLive.Index do
     {:noreply, apply_action(socket, socket.assigns.live_action, params)}
   end
 
-  defp apply_action(socket, :edit, %{"id" => id}) do
+  defp apply_action(socket, :index_root, _params) do
     socket
-    |> assign(:page_title, "Edit Accountgroup")
-    |> assign(:accountgroup, Accounting.get_accountgroup!(id))
+    |> redirect(to: "/clubs")
   end
 
-  defp apply_action(socket, :new, _params) do
+  defp apply_action(socket, :index, %{"club_id" => club_id}) do
+    club = Organization.get_club!(club_id)
     socket
-    |> assign(:page_title, "New Accountgroup")
-    |> assign(:accountgroup, %Accountgroup{})
+    |> assign(:page_title, "Kontengruppen")
+    |> assign(:club, club)
   end
 
-  defp apply_action(socket, :index, _params) do
-    socket
-    |> assign(:page_title, "Listing Accountgroups")
-    |> assign(:accountgroup, nil)
-  end
-
-  @impl true
-  def handle_info({SportywebWeb.AccountgroupLive.FormComponent, {:saved, accountgroup}}, socket) do
-    {:noreply, stream_insert(socket, :accountgroups, accountgroup)}
-  end
-
-  @impl true
-  def handle_event("delete", %{"id" => id}, socket) do
-    accountgroup = Accounting.get_accountgroup!(id)
-    {:ok, _} = Accounting.delete_accountgroup(accountgroup)
-
-    {:noreply, stream_delete(socket, :accountgroups, accountgroup)}
-  end
 end

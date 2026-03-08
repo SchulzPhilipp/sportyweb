@@ -453,7 +453,7 @@ Repo.insert!(%Department{
 ###################################
 # Add Club 3
 
-_club_3 =
+club_3 =
   Repo.insert!(%Club{
     name: "FC St. Pauli",
     reference_number: "-",
@@ -1105,36 +1105,14 @@ end)
   # einen einzelnen Repo.insert!-Befehl schreiben zu müssen.
   # Gleichzeitig bietet diese Lösung die Möglichkeit später auch andere Kontenpläne bspw. über eine Datei einzulesen und erzeugen zu lassen.
 
-  # Schritt 1: Die Account-Typen vorab anlegen (Idempotent)
-  # Wir speichern sie in einer Map, um später schnell darauf zugreifen zu können
-  accounttypes_data = [
-  %{accounttypename: "Ertragskonto", accounttypecode: "EK"},
-  %{accounttypename: "Aufwandskonto", accounttypecode: "AK"},
-  %{accounttypename: "Passives Bestandskonto", accounttypecode: "PBK"},
-  %{accounttypename: "Aktives Bestandskonto", accounttypecode: "ABK"},
-  %{accounttypename: "Vortragskonto", accounttypecode: "VORT"},
-  %{accounttypename: "Kapitalkonto", accounttypecode: "KAPI"},
-  %{accounttypename: "Korrekturkonto", accounttypecode: "KORR"},
-  %{accounttypename: "statistisches Konto", accounttypecode: "STAT"},
-]
-
-accounttypes = Enum.into(accounttypes_data, %{}, fn data ->
-  accounttype = Repo.insert!(%Accounttype{accounttypename: data.accounttypename, accounttypecode: data.accounttypecode},
-    on_conflict: [set: [accounttypename: data.accounttypename]],
-    conflict_target: :accounttypename
-  )
-  # Map-Key ist der Name oder Code, damit wir ihn unten finden
-  {data.accounttypecode, accounttype}
-end)
-
-  # Schritt 2: Die Hierarchie mit Zuordnung zum Typ
+  # Schritt 1: Die Hierarchie mit Zuordnung zum Typ
   accounting_data = [
     %{
       accountclass: "0", accountclassname: "Anlagevermögen",
       accountgroups: [
         %{
           accountgroupname: "Entgeltlich erworbene Konzessionen, gewerbliche Schutzrechte und ähnliche Rechte und Werte sowie Lizenzen an solchen Rechten und Werten",
-          accounttypecode: "ABK",
+          accounttypecode: "aktiv",
             accounts: [
               %{accountnumber: "01000", accountname: "Entgeltlich erworbene Konzessionen, gewerbliche Schutzrechte und ähnliche Rechte und Werte sowie Lizenzen an solchen Rechten und Werten", accountbalance: Money.new(:EUR, 0)},
               %{accountnumber: "01100", accountname: "Konzessionen", accountbalance: Money.new(:EUR, 0)},
@@ -1145,7 +1123,7 @@ end)
             ]},
         %{
           accountgroupname: "Selbst geschaffene gewerbliche Schutzrechte und ähnliche Rechte und Werte",
-          accounttypecode: "ABK",
+          accounttypecode: "aktiv",
             accounts: [
               %{accountnumber: "01430", accountname: "Selbst geschaffene immaterielle Vermögensgegenstände", accountbalance: Money.new(:EUR, 0)},
               %{accountnumber: "01440", accountname: "EDV-Software", accountbalance: Money.new(:EUR, 0)},
@@ -1155,26 +1133,26 @@ end)
             ]},
         %{
           accountgroupname: "In der Entwicklung befindliche immaterielle Vermögensgegenstände",
-          accounttypecode: "ABK",
+          accounttypecode: "aktiv",
           accounts: [
               %{accountnumber: "01480", accountname: "Immaterielle Vermögensgegenstände in Entwicklung", accountbalance: Money.new(:EUR, 0)},
             ]},
         %{
           accountgroupname: "Geschäfts- oder Firmenwert",
-          accounttypecode: "ABK",
+          accounttypecode: "aktiv",
           accounts: [
               %{accountnumber: "01500", accountname: "Geschäfts- oder Firmenwert", accountbalance: Money.new(:EUR, 0)},
             ]},
         %{
           accountgroupname: "Geleistete Anzahlungen",
-          accounttypecode: "ABK",
+          accounttypecode: "aktiv",
           accounts: [
               %{accountnumber: "01700", accountname: "Geleistete Anzahlungen auf immaterielle Vermögensgegenstände", accountbalance: Money.new(:EUR, 0)},
               %{accountnumber: "01790", accountname: "Anzahlungen auf Geschäfts- oder Firmenwert", accountbalance: Money.new(:EUR, 0)}
             ]},
         %{
           accountgroupname: "Grundstücke, grundstücksgleiche Rechte und Bauten einschließlich der Bauten auf fremden Grundstücken",
-          accounttypecode: "ABK",
+          accounttypecode: "aktiv",
           accounts: [
               %{accountnumber: "02000", accountname: "Grundstücke, grundstücksgleiche Rechte und Bauten einschließlich der Bauten auf fremden Grundstücken", accountbalance: Money.new(:EUR, 0)},
               %{accountnumber: "02100", accountname: "Grundstücksgleiche Rechte ohne Bauten", accountbalance: Money.new(:EUR, 0)},
@@ -1196,7 +1174,7 @@ end)
             ]},
         %{
           accountgroupname: "Grundstücke, grundstücksgleiche Rechte und Bauten einschließlich der Bauten auf fremden Grundstücken",
-          accounttypecode: "ABK",
+          accounttypecode: "aktiv",
           accounts: [
               %{accountnumber: "03000", accountname: "Wohnbauten", accountbalance: Money.new(:EUR, 0)},
               %{accountnumber: "03050", accountname: "Garagen", accountbalance: Money.new(:EUR, 0)},
@@ -1215,7 +1193,7 @@ end)
             ]},
         %{
           accountgroupname: "Technische Anlagen und Maschinen",
-          accounttypecode: "ABK",
+          accounttypecode: "aktiv",
           accounts: [
               %{accountnumber: "04000", accountname: "Technische Anlagen und Maschinen", accountbalance: Money.new(:EUR, 0)},
               %{accountnumber: "04200", accountname: "Technische Anlagen", accountbalance: Money.new(:EUR, 0)},
@@ -1226,7 +1204,7 @@ end)
             ]},
         %{
           accountgroupname: "Andere Anlagen, Betriebsund Geschäftsausstattung",
-          accounttypecode: "ABK",
+          accounttypecode: "aktiv",
           accounts: [
               %{accountnumber: "05000", accountname: "Andere Anlagen, Betriebs- und Geschäftsausstattung", accountbalance: Money.new(:EUR, 0)},
               %{accountnumber: "05100", accountname: "Andere Anlagen", accountbalance: Money.new(:EUR, 0)},
@@ -1238,7 +1216,7 @@ end)
             ]},
         %{
           accountgroupname: "Andere Anlagen, Betriebsund Geschäftsausstattung",
-          accounttypecode: "ABK",
+          accounttypecode: "aktiv",
           accounts: [
               %{accountnumber: "06200", accountname: "Werkzeuge", accountbalance: Money.new(:EUR, 0)},
               %{accountnumber: "06300", accountname: "Betriebsausstattung", accountbalance: Money.new(:EUR, 0)},
@@ -1255,7 +1233,7 @@ end)
             ]},
         %{
           accountgroupname: "Geleistete Anzahlungen und Anlagen im Bau",
-          accounttypecode: "ABK",
+          accounttypecode: "aktiv",
           accounts: [
               %{accountnumber: "07000", accountname: "Geleistete Anzahlungen und Anlagen im Bau", accountbalance: Money.new(:EUR, 0)},
               %{accountnumber: "07050", accountname: "Anzahlungen auf Grund und Boden", accountbalance: Money.new(:EUR, 0)},
@@ -1274,7 +1252,7 @@ end)
             ]},
         %{
           accountgroupname: "Anteile an verbundenen Unternehmen",
-          accounttypecode: "ABK",
+          accounttypecode: "aktiv",
           accounts: [
               %{accountnumber: "08000", accountname: "Anteile an verbundenen Unternehmen (Anlagevermögen)", accountbalance: Money.new(:EUR, 0)},
               %{accountnumber: "08030", accountname: "Anteile an verbundenen Unternehmen, Personengesellschaften", accountbalance: Money.new(:EUR, 0)},
@@ -1285,7 +1263,7 @@ end)
             ]},
         %{
           accountgroupname: "Ausleihungen an verbundene Unternehmen",
-          accounttypecode: "ABK",
+          accounttypecode: "aktiv",
           accounts: [
               %{accountnumber: "08100", accountname: "Ausleihungen an verbundene Unternehmen", accountbalance: Money.new(:EUR, 0)},
               %{accountnumber: "08130", accountname: "Ausleihungen an verbundene Unternehmen, Personengesellschaften", accountbalance: Money.new(:EUR, 0)},
@@ -1294,7 +1272,7 @@ end)
             ]},
         %{
           accountgroupname: "Beteiligungen",
-          accounttypecode: "ABK",
+          accounttypecode: "aktiv",
           accounts: [
               %{accountnumber: "08200", accountname: "Beteiligungen", accountbalance: Money.new(:EUR, 0)},
               %{accountnumber: "08300", accountname: "Typisch stille Beteiligungen", accountbalance: Money.new(:EUR, 0)},
@@ -1304,7 +1282,7 @@ end)
             ]},
         %{
           accountgroupname: "Ausleihungen an Unternehmen, mit denen ein Beteiligungsverhältnis besteht",
-          accounttypecode: "ABK",
+          accounttypecode: "aktiv",
           accounts: [
               %{accountnumber: "08800", accountname: "Ausleihungen an Unternehmen, mit denen ein Beteiligungsverhältnis besteht", accountbalance: Money.new(:EUR, 0)},
               %{accountnumber: "08830", accountname: "Ausleihungen an Unternehmen, mit denen ein Beteiligungsverhältnis besteht, Personengesellschaften", accountbalance: Money.new(:EUR, 0)},
@@ -1312,7 +1290,7 @@ end)
             ]},
         %{
           accountgroupname: "Wertpapiere des Anlagevermögens",
-          accounttypecode: "ABK",
+          accounttypecode: "aktiv",
           accounts: [
               %{accountnumber: "09000", accountname: "Wertpapiere des Anlagevermögens", accountbalance: Money.new(:EUR, 0)},
               %{accountnumber: "09100", accountname: "Wertpapiere mit Gewinnbeteiligungsansprüchen, die dem Teileinkünfteverfahren unterliegen", accountbalance: Money.new(:EUR, 0)},
@@ -1320,7 +1298,7 @@ end)
             ]},
         %{
           accountgroupname: "Sonstige Ausleihungen",
-          accounttypecode: "ABK",
+          accounttypecode: "aktiv",
           accounts: [
               %{accountnumber: "09300", accountname: "Übrige sonstige Ausleihungen", accountbalance: Money.new(:EUR, 0)},
               %{accountnumber: "09350", accountname: "Sonstige Ausleihungen - geleistete Kautionen", accountbalance: Money.new(:EUR, 0)},
@@ -1328,26 +1306,26 @@ end)
             ]},
         %{
           accountgroupname: "Ausleihungen an Gesellschafter",
-          accounttypecode: "ABK",
+          accounttypecode: "aktiv",
           accounts: [
               %{accountnumber: "09600", accountname: "Ausleihungen an Gesellschafter", accountbalance: Money.new(:EUR, 0)},
               %{accountnumber: "09610", accountname: "Ausleihungen an GmbH-Gesellschafter", accountbalance: Money.new(:EUR, 0)}
             ]},
         %{
           accountgroupname: "Sonstige Ausleihungen",
-          accounttypecode: "ABK",
+          accounttypecode: "aktiv",
           accounts: [
               %{accountnumber: "09700", accountname: "Ausleihungen an nahe stehende Personen", accountbalance: Money.new(:EUR, 0)}
             ]},
         %{
           accountgroupname: "Genossenschaftsanteile",
-          accounttypecode: "ABK",
+          accounttypecode: "aktiv",
           accounts: [
               %{accountnumber: "09800", accountname: "Genossenschaftsanteile zum langfristigen Verbleib", accountbalance: Money.new(:EUR, 0)}
             ]},
         %{
           accountgroupname: "Rückdeckungsansprüche aus Lebensversicherungen",
-          accounttypecode: "ABK",
+          accounttypecode: "aktiv",
           accounts: [
               %{accountnumber: "09900", accountname: "Rückdeckungsansprüche aus Lebensversicherungen zum langfristigen Verbleib", accountbalance: Money.new(:EUR, 0)}
             ]},
@@ -1357,13 +1335,13 @@ end)
        accountgroups: [
          %{
            accountgroupname: "Roh-, Hilfs- und Betriebsstoffe",
-           accounttypecode: "ABK",
+           accounttypecode: "aktiv",
            accounts: [
                %{accountnumber: "10000", accountname: "Roh-, Hilfs- und Betriebsstoffe (Bestand)", accountbalance: Money.new(:EUR, 0)}
              ]},
          %{
            accountgroupname: "Unfertige Erzeugnisse, unfertige Leistungen",
-           accounttypecode: "ABK",
+           accounttypecode: "aktiv",
            accounts: [
                %{accountnumber: "10400", accountname: "Unfertige Erzeugnisse, unfertige Leistungen (Bestand)", accountbalance: Money.new(:EUR, 0)},
                %{accountnumber: "10500", accountname: "Unfertige Erzeugnisse (Bestand)", accountbalance: Money.new(:EUR, 0)},
@@ -1371,19 +1349,19 @@ end)
              ]},
          %{
            accountgroupname: "In Ausführung befindliche Bauaufträge",
-           accounttypecode: "ABK",
+           accounttypecode: "aktiv",
            accounts: [
                %{accountnumber: "10900", accountname: "In Ausführung befindliche Bauaufträge", accountbalance: Money.new(:EUR, 0)}
              ]},
          %{
            accountgroupname: "In Arbeit befindliche Aufträge",
-           accounttypecode: "ABK",
+           accounttypecode: "aktiv",
            accounts: [
                %{accountnumber: "10950", accountname: "In Arbeit befindliche Aufträge", accountbalance: Money.new(:EUR, 0)}
              ]},
          %{
            accountgroupname: "Fertige Erzeugnisse und Waren",
-           accounttypecode: "ABK",
+           accounttypecode: "aktiv",
            accounts: [
                %{accountnumber: "11000", accountname: "Fertige Erzeugnisse und Waren (Bestand)", accountbalance: Money.new(:EUR, 0)},
                %{accountnumber: "11100", accountname: "Fertige Erzeugnisse (Bestand)", accountbalance: Money.new(:EUR, 0)},
@@ -1392,7 +1370,7 @@ end)
              ]},
          %{
            accountgroupname: "Geleistete Anzahlungen",
-           accounttypecode: "ABK",
+           accounttypecode: "aktiv",
            accounts: [
                %{accountnumber: "11800", accountname: "Geleistete Anzahlungen auf Vorräte", accountbalance: Money.new(:EUR, 0)},
                %{accountnumber: "11810", accountname: "Geleistete Anzahlungen 7 % Vorsteuer", accountbalance: Money.new(:EUR, 0)},
@@ -1402,13 +1380,13 @@ end)
              ]},
          %{
            accountgroupname: "Erhaltene Anzahlungen auf Bestellungen (von Vorräten offen abgesetzt)",
-           accounttypecode: "ABK",
+           accounttypecode: "aktiv",
            accounts: [
                %{accountnumber: "11900", accountname: "Erhaltene Anzahlungen auf Bestellungen (von Vorräten offen abgesetzt)", accountbalance: Money.new(:EUR, 0)}
              ]},
          %{
            accountgroupname: "Forderungen aus Lieferungen und Leistungen",
-           accounttypecode: "ABK",
+           accounttypecode: "aktiv",
            accounts: [
                %{accountnumber: "12000", accountname: "Forderungen aus Lieferungen und Leistungen", accountbalance: Money.new(:EUR, 0)},
                %{accountnumber: "12100", accountname: "Forderungen aus Lieferungen und Leistungen ohne Kontokorrent", accountbalance: Money.new(:EUR, 0)},
@@ -1426,7 +1404,7 @@ end)
              ]},
          %{
            accountgroupname: "Forderungen gegen Gesellschafter",
-           accounttypecode: "ABK",
+           accounttypecode: "aktiv",
            accounts: [
                %{accountnumber: "12500", accountname: "Forderungen aus Lieferungen und Leistungen gegen Gesellschafter", accountbalance: Money.new(:EUR, 0)},
                %{accountnumber: "12510", accountname: "Forderungen aus Lieferungen und Leistungen gegen Gesellschafter - Restlaufzeit bis 1 Jahr", accountbalance: Money.new(:EUR, 0)},
@@ -1434,7 +1412,7 @@ end)
              ]},
          %{
            accountgroupname: "Forderungen gegen verbundene Unternehmen",
-           accounttypecode: "ABK",
+           accounttypecode: "aktiv",
            accounts: [
                %{accountnumber: "12600", accountname: "Forderungen gegen verbundene Unternehmen", accountbalance: Money.new(:EUR, 0)},
                %{accountnumber: "12610", accountname: "Forderungen gegen verbundene Unternehmen - Restlaufzeit bis 1 Jahr", accountbalance: Money.new(:EUR, 0)},
@@ -1447,7 +1425,7 @@ end)
              ]},
          %{
            accountgroupname: "Forderungen gegen Unternehmen, mit denen ein Beteiligungsverhältnis besteht",
-           accounttypecode: "ABK",
+           accounttypecode: "aktiv",
            accounts: [
                %{accountnumber: "12800", accountname: "Forderungen gegen Unternehmen, mit denen ein Beteiligungsverhältnis besteht", accountbalance: Money.new(:EUR, 0)},
                %{accountnumber: "12810", accountname: "Forderungen gegen Unternehmen, mit denen ein Beteiligungsverhältnis besteht - Restlaufzeit bis 1 Jahr", accountbalance: Money.new(:EUR, 0)},
@@ -1460,19 +1438,19 @@ end)
              ]},
          %{
            accountgroupname: "Eingeforderte, noch ausstehende Kapitaleinlagen",
-           accounttypecode: "ABK",
+           accounttypecode: "aktiv",
            accounts: [
                %{accountnumber: "12980", accountname: "Ausstehende Einlagen auf das gezeichnete Kapital, eingefordert (Forderungen, nicht eingeforderte ausstehende Einlagen s. Konto 2910 0)", accountbalance: Money.new(:EUR, 0)}
              ]},
          %{
            accountgroupname: "Eingeforderte Nachschüsse",
-           accounttypecode: "ABK",
+           accounttypecode: "aktiv",
            accounts: [
                %{accountnumber: "12990", accountname: "Nachschüsse (Forderungen, Gegenkonto 2929 0)", accountbalance: Money.new(:EUR, 0)}
              ]},
          %{
            accountgroupname: "Sonstige Vermögensgegenstände",
-           accounttypecode: "ABK",
+           accounttypecode: "aktiv",
            accounts: [
                %{accountnumber: "13000", accountname: "Sonstige Vermögensgegenstände", accountbalance: Money.new(:EUR, 0)},
                %{accountnumber: "13010", accountname: "Sonstige Vermögensgegenstände - Restlaufzeit bis 1 Jahr", accountbalance: Money.new(:EUR, 0)},
@@ -1516,7 +1494,7 @@ end)
              ]},
          %{
            accountgroupname: "Sonstige Vermögensgegenstände",
-           accounttypecode: "ABK",
+           accounttypecode: "aktiv",
            accounts: [
                %{accountnumber: "14000", accountname: "Abziehbare Vorsteuer", accountbalance: Money.new(:EUR, 0)},
                %{accountnumber: "14010", accountname: "Abziehbare Vorsteuer 7 %", accountbalance: Money.new(:EUR, 0)},
@@ -1554,7 +1532,7 @@ end)
              ]},
          %{
            accountgroupname: "Forderungen gegen Gesellschafter",
-           accounttypecode: "ABK",
+           accounttypecode: "aktiv",
            accounts: [
                %{accountnumber: "13070", accountname: "Forderungen gegen GmbH-Gesellschafter", accountbalance: Money.new(:EUR, 0)},
                %{accountnumber: "13080", accountname: "Forderungen gegen GmbH-Gesellschafter - Restlaufzeit bis 1 Jahr", accountbalance: Money.new(:EUR, 0)},
@@ -1565,21 +1543,21 @@ end)
              ]},
          %{
            accountgroupname: "Aktiver Unterschiedsbetrag aus der Vermögensverrechnung",
-           accounttypecode: "ABK",
+           accounttypecode: "aktiv",
           accounts: [
                %{accountnumber: "13810", accountname: "Vermögensgegenstände zur Saldierung mit Pensionsrückstellungen und ähnlichen Verpflichtungen zum langfristigen Verbleib nach § 246 Abs. 2 HGB", accountbalance: Money.new(:EUR, 0)},
                %{accountnumber: "13830", accountname: "Vermögensgegenstände zur Saldierung mit der Altersversorgung vergleichbaren langfristigen Verpflichtungen nach § 246 Abs. 2 HGB", accountbalance: Money.new(:EUR, 0)}
              ]},
          %{
            accountgroupname: "Anteile an verbundenen Unternehmen",
-           accounttypecode: "ABK",
+           accounttypecode: "aktiv",
           accounts: [
                %{accountnumber: "15000", accountname: "Anteile an verbundenen Unternehmen (Umlaufvermögen)", accountbalance: Money.new(:EUR, 0)},
                %{accountnumber: "15040", accountname: "Anteile an herrschender oder mit Mehrheit beteiligter Gesellschaft", accountbalance: Money.new(:EUR, 0)}
              ]},
          %{
            accountgroupname: "Sonstige Wertpapiere",
-           accounttypecode: "ABK",
+           accounttypecode: "aktiv",
           accounts: [
                %{accountnumber: "15100", accountname: "Sonstige Wertpapiere", accountbalance: Money.new(:EUR, 0)},
                %{accountnumber: "15250", accountname: "Andere Wertpapiere mit unwesentlichen Wertschwankungen", accountbalance: Money.new(:EUR, 0)},
@@ -1587,7 +1565,7 @@ end)
              ]},
          %{
            accountgroupname: "Kassenbestand, Bundesbankguthaben, Guthaben bei Kreditinstituten und Schecks",
-           accounttypecode: "ABK",
+           accounttypecode: "aktiv",
           accounts: [
                %{accountnumber: "15500", accountname: "Schecks", accountbalance: Money.new(:EUR, 0)},
                %{accountnumber: "16000", accountname: "Kasse", accountbalance: Money.new(:EUR, 0)},
@@ -1609,13 +1587,13 @@ end)
              ]},
          %{
            accountgroupname: "Verbindlichkeiten gegenüber Kreditinstituten",
-           accounttypecode: "ABK",
+           accounttypecode: "aktiv",
           accounts: [
                %{accountnumber: "18950", accountname: "Verbindlichkeiten gegenüber Kreditinstituten (nicht im Finanzmittelfonds enthalten)", accountbalance: Money.new(:EUR, 0)}
              ]},
          %{
            accountgroupname: "Rechnungsabgrenzungsposten",
-           accounttypecode: "ABK",
+           accounttypecode: "aktiv",
           accounts: [
                %{accountnumber: "19000", accountname: "Aktive Rechnungsabgrenzung", accountbalance: Money.new(:EUR, 0)},
                %{accountnumber: "19200", accountname: "Als Aufwand berücksichtigte Zölle und Verbrauchsteuern auf Vorräte", accountbalance: Money.new(:EUR, 0)},
@@ -1624,7 +1602,7 @@ end)
              ]},
          %{
            accountgroupname: "Aktive latente Steuern",
-           accounttypecode: "ABK",
+           accounttypecode: "aktiv",
           accounts: [
                %{accountnumber: "19500", accountname: "Aktive latente Steuern", accountbalance: Money.new(:EUR, 0)}
              ]}
@@ -1634,7 +1612,7 @@ end)
        accountgroups: [
          %{
            accountgroupname: "Gebundene Rücklage (Vereine/Stiftungen) / andere Gewinnrücklagen (gGmbH)",
-           accounttypecode: "PBK",
+           accounttypecode: "passiv",
            accounts: [
                %{accountnumber: "20000", accountname: "Gebundene Rücklagen nach § 62 Abs. 1 Nr. 1 AO", accountbalance: Money.new(:EUR, 0)},
                %{accountnumber: "20800", accountname: "Wiederbeschaffungsrücklage", accountbalance: Money.new(:EUR, 0)},
@@ -1642,7 +1620,7 @@ end)
              ]},
          %{
            accountgroupname: "Freie Rücklage (Vereine/Stiftungen) / andere Gewinnrücklagen (gGmbH)",
-           accounttypecode: "PBK",
+           accounttypecode: "passiv",
            accounts: [
                %{accountnumber: "21000", accountname: "Freie Rücklagen nach § 62 Abs. 1 Nr. 3 AO", accountbalance: Money.new(:EUR, 0)},
                %{accountnumber: "22000", accountname: "Rücklage aus sonstigen zeitnah zu verwendenden Mitteln", accountbalance: Money.new(:EUR, 0)},
@@ -1650,86 +1628,86 @@ end)
              ]},
          %{
            accountgroupname: "Nutzungsgebundenes Kapital",
-           accounttypecode: "PBK",
+           accounttypecode: "passiv",
            accounts: [
                %{accountnumber: "23000", accountname: "Nutzungsgebundenes Kapital (Eigenkapitalausweis)", accountbalance: Money.new(:EUR, 0)}
              ]},
          %{
            accountgroupname: "Ergebnisse Vermögensumschichtungen (Vereine/Stiftungen) / andere Gewinnrücklagen (gGmbH)",
-           accounttypecode: "PBK",
+           accounttypecode: "passiv",
            accounts: [
                %{accountnumber: "24000", accountname: "Ergebnisse Vermögensumschichtung", accountbalance: Money.new(:EUR, 0)}
              ]},
          %{
            accountgroupname: "Vereinskapital / sonstige nicht zeitnah zu verwendende Mittel (Stiftungen) / Kapitalrücklage (gGmbH)",
-           accounttypecode: "PBK",
+           accounttypecode: "passiv",
            accounts: [
                %{accountnumber: "25000", accountname: "Vereinskapital / sonstige nicht zeitnah zu verwendende Mittel nach § 62 Abs. 3 AO", accountbalance: Money.new(:EUR, 0)}
              ]},
          %{
            accountgroupname: "Errichtungskapital",
-           accounttypecode: "PBK",
+           accounttypecode: "passiv",
            accounts: [
                %{accountnumber: "26000", accountname: "Errichtungskapital", accountbalance: Money.new(:EUR, 0)}
              ]},
          %{
            accountgroupname: "Zustiftungskapital",
-           accounttypecode: "PBK",
+           accounttypecode: "passiv",
            accounts: [
                %{accountnumber: "26500", accountname: "Zustiftungskapital", accountbalance: Money.new(:EUR, 0)}
              ]},
          %{
            accountgroupname: "Zuführung aus Ergebnisrücklagen",
-           accounttypecode: "PBK",
+           accounttypecode: "passiv",
            accounts: [
                %{accountnumber: "27000", accountname: "Zuführung aus Ergebnisrücklagen", accountbalance: Money.new(:EUR, 0)}
              ]},
          %{
            accountgroupname: "Verbrauchskapital",
-           accounttypecode: "PBK",
+           accounttypecode: "passiv",
            accounts: [
                %{accountnumber: "27100", accountname: "Verbrauchskapital", accountbalance: Money.new(:EUR, 0)}
              ]},
          %{
            accountgroupname: "Kapitalerhaltungsrücklage",
-           accounttypecode: "PBK",
+           accounttypecode: "passiv",
            accounts: [
                %{accountnumber: "27500", accountname: "Kapitalerhaltungsrücklage", accountbalance: Money.new(:EUR, 0)}
              ]},
          %{
            accountgroupname: "Ansparrücklage",
-           accounttypecode: "PBK",
+           accounttypecode: "passiv",
            accounts: [
                %{accountnumber: "28000", accountname: "Ansparrücklage nach § 62 Abs. 4 AO", accountbalance: Money.new(:EUR, 0)}
              ]},
          %{
            accountgroupname: "Sonstige Ergebnisrücklagen",
-           accounttypecode: "PBK",
+           accounttypecode: "passiv",
            accounts: [
                %{accountnumber: "28500", accountname: "Sonstige Ergebnisrücklagen", accountbalance: Money.new(:EUR, 0)}
              ]},
          %{
            accountgroupname: "Gezeichnetes Kapital",
-           accounttypecode: "PBK",
+           accounttypecode: "passiv",
            accounts: [
                %{accountnumber: "29000", accountname: "Gezeichnetes Kapital", accountbalance: Money.new(:EUR, 0)},
                %{accountnumber: "29080", accountname: "Kapitalerhöhung aus Gesellschaftsmitteln", accountbalance: Money.new(:EUR, 0)}
              ]},
          %{
            accountgroupname: "Eigene Anteile",
-           accounttypecode: "PBK",
+           accounttypecode: "passiv",
            accounts: [
                %{accountnumber: "29090", accountname: "Erworbene eigene Anteile", accountbalance: Money.new(:EUR, 0)}
              ]},
          %{
            accountgroupname: "Nicht eingeforderte ausstehende Einlagen",
-           accounttypecode: "PBK",
+           accounttypecode: "passiv",
            accounts: [
                %{accountnumber: "29100", accountname: "Ausstehende Einlagen auf das gezeichnete Kapital, nicht eingefordert (Passivausweis, vom gezeichneten Kapital offen abgesetzt; eingeforderte ausstehende Einlagen s. Konto 1298 0)", accountbalance: Money.new(:EUR, 0)}
              ]},
          %{
            accountgroupname: "Kapitalrücklage",
-           accounttypecode: "PBK",
+           accounttypecode: "passiv",
            accounts: [
                %{accountnumber: "29200", accountname: "Kapitalrücklage", accountbalance: Money.new(:EUR, 0)},
                %{accountnumber: "29250", accountname: "Kapitalrücklage durch Ausgabe von Anteilen über Nennbetrag", accountbalance: Money.new(:EUR, 0)},
@@ -1740,25 +1718,25 @@ end)
              ]},
          %{
            accountgroupname: "Gesetzliche Rücklage",
-           accounttypecode: "PBK",
+           accounttypecode: "passiv",
            accounts: [
                %{accountnumber: "29300", accountname: "Gesetzliche Rücklage", accountbalance: Money.new(:EUR, 0)}
              ]},
          %{
            accountgroupname: "Rücklage für Anteile an einem herrschenden oder mehrheitlich beteiligten Unternehmen",
-           accounttypecode: "PBK",
+           accounttypecode: "passiv",
            accounts: [
                %{accountnumber: "29350", accountname: "Rücklage für Anteile an einem herrschenden oder mehrheitlich beteiligten Unternehmen", accountbalance: Money.new(:EUR, 0)}
              ]},
          %{
            accountgroupname: "Satzungsmäßige Rücklagen",
-           accounttypecode: "PBK",
+           accounttypecode: "passiv",
            accounts: [
                %{accountnumber: "29500", accountname: "Satzungsmäßige Rücklagen", accountbalance: Money.new(:EUR, 0)}
              ]},
          %{
            accountgroupname: "Andere Gewinnrücklagen",
-           accounttypecode: "PBK",
+           accounttypecode: "passiv",
            accounts: [
                %{accountnumber: "29600", accountname: "Andere Gewinnrücklagen", accountbalance: Money.new(:EUR, 0)},
                %{accountnumber: "29610", accountname: "Andere Gewinnrücklagen aus dem Erwerb eigener Anteile", accountbalance: Money.new(:EUR, 0)},
@@ -1773,20 +1751,20 @@ end)
              ]},
          %{
            accountgroupname: "Ergebnisvortrag (Vereine/Stiftungen) / Gewinnvortrag (gGmbH)",
-           accounttypecode: "PBK",
+           accounttypecode: "passiv",
            accounts: [
                %{accountnumber: "29700", accountname: "Gewinnvortrag / Ergebnisvortrag vor Verwendung", accountbalance: Money.new(:EUR, 0)},
                %{accountnumber: "29780", accountname: "Verlustvortrag / Ergebnisvortrag vor Verwendung", accountbalance: Money.new(:EUR, 0)}
              ]},
          %{
            accountgroupname: "Genussrechtskapital mit Eigenkapital-Charakter",
-           accounttypecode: "PBK",
+           accounttypecode: "passiv",
            accounts: [
                %{accountnumber: "29790", accountname: "Genussrechtskapital mit Eigenkapitalcharakter", accountbalance: Money.new(:EUR, 0)}
              ]},
          %{
            accountgroupname: "Andere Sonderposten",
-           accounttypecode: "PBK",
+           accounttypecode: "passiv",
            accounts: [
                %{accountnumber: "29800", accountname: "Übrige andere Sonderposten", accountbalance: Money.new(:EUR, 0)},
                %{accountnumber: "29810", accountname: "Steuerfreie Rücklagen nach § 6b EStG", accountbalance: Money.new(:EUR, 0)},
@@ -1796,33 +1774,33 @@ end)
              ]},
          %{
            accountgroupname: "Sonderposten mit Rücklageanteil",
-           accounttypecode: "PBK",
+           accounttypecode: "passiv",
            accounts: [
                %{accountnumber: "29840", accountname: "Sonderposten mit Rücklageanteil, Sonderabschreibungen", accountbalance: Money.new(:EUR, 0)},
                %{accountnumber: "29860", accountname: "Sonderposten mit Rücklageanteil nach § 7g Abs. 5 EStG", accountbalance: Money.new(:EUR, 0)}
              ]},
          %{
            accountgroupname: "Sonderposten für Investitionszulagen",
-           accounttypecode: "PBK",
+           accounttypecode: "passiv",
            accounts: [
                %{accountnumber: "29870", accountname: "Sonderposten für Investitionszulagen", accountbalance: Money.new(:EUR, 0)},
                %{accountnumber: "29880", accountname: "Sonderposten für Zuschüsse Dritter", accountbalance: Money.new(:EUR, 0)}
              ]},
          %{
            accountgroupname: "Nutzungsgebundenes Kapital",
-           accounttypecode: "PBK",
+           accounttypecode: "passiv",
            accounts: [
                %{accountnumber: "29950", accountname: "Nutzungsgebundenes Kapital", accountbalance: Money.new(:EUR, 0)}
              ]},
          %{
            accountgroupname: "Längerfristig gebundene Spenden",
-           accounttypecode: "PBK",
+           accounttypecode: "passiv",
            accounts: [
                %{accountnumber: "29960", accountname: "Längerfristig gebundene Spenden", accountbalance: Money.new(:EUR, 0)}
              ]},
          %{
            accountgroupname: "Noch nicht satzungsgemäß verwendete Spenden",
-           accounttypecode: "PBK",
+           accounttypecode: "passiv",
            accounts: [
                %{accountnumber: "29970", accountname: "Noch nicht satzungsgemäß verwendete Spenden", accountbalance: Money.new(:EUR, 0)}
              ]}
@@ -1832,7 +1810,7 @@ end)
        accountgroups: [
          %{
            accountgroupname: "Rückstellungen für Pensionen und ähnliche Verpflichtungen",
-           accounttypecode: "PBK",
+           accounttypecode: "passiv",
            accounts: [
                %{accountnumber: "30000", accountname: "Rückstellungen für Pensionen und ähnliche Verpflichtungen", accountbalance: Money.new(:EUR, 0)},
                %{accountnumber: "30050", accountname: "Rückstellungen für Pensionen und ähnliche Verpflichtungen gegenüber Gesellschaftern oder nahe stehenden Personen", accountbalance: Money.new(:EUR, 0)},
@@ -1842,13 +1820,13 @@ end)
              ]},
          %{
            accountgroupname: "Rückstellungen für Pensionen und ähnliche Verpflichtungen",
-           accounttypecode: "PBK",
+           accounttypecode: "passiv",
            accounts: [
                %{accountnumber: "30090", accountname: "Rückstellungen für Pensionen und ähnliche Verpflichtungen zur Saldierung mit Vermögensgegenständen zum langfristigen Verbleib nach § 246 Abs. 2 HGB", accountbalance: Money.new(:EUR, 0)}
              ]},
          %{
            accountgroupname: "Steuerrückstellungen (allgemein)",
-           accounttypecode: "PBK",
+           accounttypecode: "passiv",
            accounts: [
                %{accountnumber: "30200", accountname: "Steuerrückstellungen", accountbalance: Money.new(:EUR, 0)},
                %{accountnumber: "30350", accountname: "Gewerbesteuerrückstellung nach § 4 Abs. 5b EStG", accountbalance: Money.new(:EUR, 0)},
@@ -1857,19 +1835,19 @@ end)
              ]},
          %{
            accountgroupname: "Rückstellungen für latente Steuern",
-           accounttypecode: "PBK",
+           accounttypecode: "passiv",
            accounts: [
                %{accountnumber: "30600", accountname: "Rückstellungen für latente Steuern", accountbalance: Money.new(:EUR, 0)}
              ]},
          %{
            accountgroupname: "Passive latente Steuern",
-           accounttypecode: "PBK",
+           accounttypecode: "passiv",
            accounts: [
                %{accountnumber: "30650", accountname: "Passive latente Steuern", accountbalance: Money.new(:EUR, 0)}
              ]},
          %{
            accountgroupname: "Sonstige Rückstellungen",
-           accounttypecode: "PBK",
+           accounttypecode: "passiv",
            accounts: [
                %{accountnumber: "30700", accountname: "Sonstige Rückstellungen", accountbalance: Money.new(:EUR, 0)},
                %{accountnumber: "30740", accountname: "Rückstellungen für Personalkosten", accountbalance: Money.new(:EUR, 0)},
@@ -1887,7 +1865,7 @@ end)
              ]},
          %{
            accountgroupname: "Anleihen",
-           accounttypecode: "PBK",
+           accounttypecode: "passiv",
            accounts: [
                %{accountnumber: "31000", accountname: "Anleihen, nicht konvertibel", accountbalance: Money.new(:EUR, 0)},
                %{accountnumber: "31010", accountname: "Anleihen, nicht konvertibel - Restlaufzeit bis 1 Jahr", accountbalance: Money.new(:EUR, 0)},
@@ -1900,7 +1878,7 @@ end)
              ]},
          %{
            accountgroupname: "Sonstige Schuld- und Finanztitel",
-           accounttypecode: "PBK",
+           accounttypecode: "passiv",
            accounts: [
                %{accountnumber: "31400", accountname: "Sonstige Schuld- und Finanztitel", accountbalance: Money.new(:EUR, 0)},
                %{accountnumber: "31410", accountname: "Bewilligungen", accountbalance: Money.new(:EUR, 0)},
@@ -1908,7 +1886,7 @@ end)
              ]},
          %{
            accountgroupname: "Verbindlichkeiten gegenüber Kreditinstituten",
-           accounttypecode: "PBK",
+           accounttypecode: "passiv",
            accounts: [
                %{accountnumber: "31500", accountname: "Verbindlichkeiten gegenüber Kreditinstituten", accountbalance: Money.new(:EUR, 0)},
                %{accountnumber: "31510", accountname: "Verbindlichkeiten gegenüber Kreditinstituten - Restlaufzeit bis 1 Jahr", accountbalance: Money.new(:EUR, 0)},
@@ -1923,7 +1901,7 @@ end)
              ]},
          %{
            accountgroupname: "Erhaltene Anzahlungen auf Bestellungen",
-           accounttypecode: "PBK",
+           accounttypecode: "passiv",
            accounts: [
                %{accountnumber: "32500", accountname: "Erhaltene Anzahlungen auf Bestellungen (Verbindlichkeiten)", accountbalance: Money.new(:EUR, 0)},
                %{accountnumber: "32600", accountname: "Erhaltene, versteuerte Anzahlungen 7 % USt (Verbindlichkeiten)", accountbalance: Money.new(:EUR, 0)},
@@ -1938,7 +1916,7 @@ end)
              ]},
          %{
            accountgroupname: "Verbindlichkeiten aus Lieferungen und Leistungen",
-           accounttypecode: "PBK",
+           accounttypecode: "passiv",
            accounts: [
                %{accountnumber: "33000", accountname: "Verbindlichkeiten aus Lieferungen und Leistungen", accountbalance: Money.new(:EUR, 0)},
                %{accountnumber: "33100", accountname: "Verbindlichkeiten aus Lieferungen und Leistungen ohne Kontokorrent", accountbalance: Money.new(:EUR, 0)},
@@ -1953,7 +1931,7 @@ end)
              ]},
          %{
            accountgroupname: "Verbindlichkeiten gegenüber verbundenen Unternehmen",
-           accounttypecode: "PBK",
+           accounttypecode: "passiv",
            accounts: [
                %{accountnumber: "34000", accountname: "Verbindlichkeiten gegenüber verbundenen Unternehmen", accountbalance: Money.new(:EUR, 0)},
                %{accountnumber: "34010", accountname: "Verbindlichkeiten gegenüber verbundenen Unternehmen - Restlaufzeit bis 1 Jahr", accountbalance: Money.new(:EUR, 0)},
@@ -1966,7 +1944,7 @@ end)
              ]},
          %{
            accountgroupname: "Verbindlichkeiten gegenüber Unternehmen, mit denen ein Beteiligungsverhältnis besteht",
-           accounttypecode: "PBK",
+           accounttypecode: "passiv",
            accounts: [
                %{accountnumber: "34500", accountname: "Verbindlichkeiten gegenüber Unternehmen, mit denen ein Beteiligungsverhältnis besteht", accountbalance: Money.new(:EUR, 0)},
                %{accountnumber: "34510", accountname: "Verbindlichkeiten gegenüber Unternehmen, mit denen ein Beteiligungsverhältnis besteht - Restlaufzeit bis 1 Jahr", accountbalance: Money.new(:EUR, 0)},
@@ -1979,7 +1957,7 @@ end)
              ]},
          %{
            accountgroupname: "Sonstige Verbindlichkeiten",
-           accounttypecode: "PBK",
+           accounttypecode: "passiv",
            accounts: [
                %{accountnumber: "34900", accountname: "Verbindlichkeiten für satzungsgemäße Leistungen", accountbalance: Money.new(:EUR, 0)},
                %{accountnumber: "34910", accountname: "Verbindlichkeiten aus erteilten Zusagen", accountbalance: Money.new(:EUR, 0)},
@@ -2073,7 +2051,7 @@ end)
              ]},
          %{
            accountgroupname: "Verbindlichkeiten gegenüber Gesellschaftern",
-           accounttypecode: "PBK",
+           accounttypecode: "passiv",
            accounts: [
                %{accountnumber: "35100", accountname: "Verbindlichkeiten gegenüber Gesellschaftern", accountbalance: Money.new(:EUR, 0)},
                %{accountnumber: "35110", accountname: "Verbindlichkeiten gegenüber Gesellschaftern - Restlaufzeit bis 1 Jahr", accountbalance: Money.new(:EUR, 0)},
@@ -2087,13 +2065,13 @@ end)
              ]},
          %{
            accountgroupname: "Sonstige Vermögensgegenstände",
-           accounttypecode: "PBK",
+           accounttypecode: "passiv",
            accounts: [
                %{accountnumber: "36950", accountname: "Verrechnungskonto geleistete Anzahlungen bei Buchung über Kreditorenkonto", accountbalance: Money.new(:EUR, 0)}
              ]},
          %{
            accountgroupname: "Steuerrückstellungen (allgemein)",
-           accounttypecode: "PBK",
+           accounttypecode: "passiv",
            accounts: [
                %{accountnumber: "38200", accountname: "Umsatzsteuer nicht fällig", accountbalance: Money.new(:EUR, 0)},
                %{accountnumber: "38210", accountname: "Umsatzsteuer nicht fällig 7 %", accountbalance: Money.new(:EUR, 0)},
@@ -2103,7 +2081,7 @@ end)
              ]},
                       %{
            accountgroupname: "Rechnungsabgrenzungsposten",
-           accounttypecode: "PBK",
+           accounttypecode: "passiv",
            accounts: [
                %{accountnumber: "39000", accountname: "Passive Rechnungsabgrenzung", accountbalance: Money.new(:EUR, 0)},
                %{accountnumber: "39500", accountname: "Abgrenzung unterjährig pauschal gebuchter Abschreibungen für BWA", accountbalance: Money.new(:EUR, 0)}
@@ -2113,7 +2091,7 @@ end)
        accountgroups: [
          %{
            accountgroupname: "Erträge aus Mitgliedsbeiträgen, Aufnahmegebühren und Umlagen (nur Vereine)",
-           accounttypecode: "EK",
+           accounttypecode: "ertrag",
              accounts: [
                %{accountnumber: "40000", accountname: "Echte Mitgliedsbeiträge", accountbalance: Money.new(:EUR, 0)},
                %{accountnumber: "40100", accountname: "Aufnahmegebühren", accountbalance: Money.new(:EUR, 0)},
@@ -2121,7 +2099,7 @@ end)
              ]},
          %{
            accountgroupname: "Erträge aus Erbschaften und Vermächtnissen (Vereine und Stiftungen) / Umsatzerlöse (gGmbH)",
-           accounttypecode: "EK",
+           accounttypecode: "ertrag",
              accounts: [
                %{accountnumber: "40300", accountname: "Einnahmen aus Schenkungen", accountbalance: Money.new(:EUR, 0)},
                %{accountnumber: "40310", accountname: "Einnahmen aus Erbschaften", accountbalance: Money.new(:EUR, 0)},
@@ -2130,7 +2108,7 @@ end)
              ]},
          %{
            accountgroupname: "Erträge aus Spenden",
-           accounttypecode: "EK",
+           accounttypecode: "ertrag",
              accounts: [
                %{accountnumber: "40400", accountname: "Erträge aus Spenden / Zuwendungen", accountbalance: Money.new(:EUR, 0)},
                %{accountnumber: "40450", accountname: "Geldzuwendungen gegen Zuwendungsbestätigung", accountbalance: Money.new(:EUR, 0)},
@@ -2143,7 +2121,7 @@ end)
              ]},
          %{
            accountgroupname: "Umsatzerlöse",
-           accounttypecode: "EK",
+           accounttypecode: "ertrag",
              accounts: [
                %{accountnumber: "40900", accountname: "Umsatzerlöse", accountbalance: Money.new(:EUR, 0)},
                %{accountnumber: "41000", accountname: "Sonstige steuerfreie Umsätze Inland", accountbalance: Money.new(:EUR, 0)},
@@ -2269,7 +2247,7 @@ end)
              ]},
          %{
            accountgroupname: "Sonstige betriebliche Erträge",
-           accounttypecode: "EK",
+           accounttypecode: "ertrag",
              accounts: [
                %{accountnumber: "46000", accountname: "Unentgeltliche Wertabgaben", accountbalance: Money.new(:EUR, 0)},
                %{accountnumber: "46500", accountname: "Unentgeltliche Erbringung einer sonstigen Leistung 7 % USt", accountbalance: Money.new(:EUR, 0)},
@@ -2349,7 +2327,7 @@ end)
              ]},
          %{
            accountgroupname: "Erhöhung oder Verminderung des Bestandes an fertigen und unfertigen Erzeugnissen",
-           accounttypecode: "EK",
+           accounttypecode: "ertrag",
              accounts: [
                %{accountnumber: "48000", accountname: "Bestandsveränderungen - fertige Erzeugnisse", accountbalance: Money.new(:EUR, 0)},
                %{accountnumber: "48100", accountname: "Bestandsveränderungen - unfertige Erzeugnisse", accountbalance: Money.new(:EUR, 0)},
@@ -2357,19 +2335,19 @@ end)
              ]},
          %{
            accountgroupname: "Erhöhung oder Verminderung des Bestands in Ausführung befindlicher Bauaufträge",
-           accounttypecode: "EK",
+           accounttypecode: "ertrag",
              accounts: [
                %{accountnumber: "48160", accountname: "Bestandsveränderungen in Ausführung befindlicher Bauaufträge", accountbalance: Money.new(:EUR, 0)}
              ]},
          %{
            accountgroupname: "Erhöhung oder Verminderung des Bestands in Arbeit befindlicher Aufträge",
-           accounttypecode: "EK",
+           accounttypecode: "ertrag",
              accounts: [
                %{accountnumber: "48180", accountname: "Bestandsveränderungen in Arbeitbefindlicher Aufträge", accountbalance: Money.new(:EUR, 0)}
              ]},
          %{
            accountgroupname: "Andere aktivierte Eigenleistungen",
-           accounttypecode: "EK",
+           accounttypecode: "ertrag",
              accounts: [
                %{accountnumber: "48200", accountname: "Andere aktivierte Eigenleistungen", accountbalance: Money.new(:EUR, 0)},
                %{accountnumber: "48240", accountname: "Aktivierte Eigenleistungen (den Herstellungskosten zurechenbare Fremdkapitalzinsen)", accountbalance: Money.new(:EUR, 0)},
@@ -2381,7 +2359,7 @@ end)
        accountgroups: [
          %{
            accountgroupname: "Aufwendungen für Roh-, Hilfs- und Betriebsstoffe und für bezogene Waren",
-           accounttypecode: "AK",
+           accounttypecode: "aufwand",
 
              accounts: [
                %{accountnumber: "50000", accountname: "Aufwendungen für Roh-, Hilfs- und Betriebsstoffe und für bezogene Waren", accountbalance: Money.new(:EUR, 0)},
@@ -2475,7 +2453,7 @@ end)
              ]},
          %{
            accountgroupname: "Aufwendungen für bezogene Leistungen",
-           accounttypecode: "AK",
+           accounttypecode: "aufwand",
 
              accounts: [
                %{accountnumber: "59000", accountname: "Fremdleistungen", accountbalance: Money.new(:EUR, 0)},
@@ -2510,7 +2488,7 @@ end)
        accountgroups: [
          %{
            accountgroupname: "Löhne und Gehälter",
-           accounttypecode: "AK",
+           accounttypecode: "aufwand",
            accounts: [
                %{accountnumber: "60000", accountname: "Löhne und Gehälter", accountbalance: Money.new(:EUR, 0)},
                %{accountnumber: "60020", accountname: "Ehrenamtspauschale", accountbalance: Money.new(:EUR, 0)},
@@ -2545,7 +2523,7 @@ end)
              ]},
          %{
            accountgroupname: "Soziale Abgaben und Aufwendungen für Altersversorgung und für Unterstützung",
-           accounttypecode: "AK",
+           accounttypecode: "aufwand",
            accounts: [
                %{accountnumber: "61000", accountname: "Soziale Abgaben und Aufwendungen für Altersversorgung und für Unterstützung", accountbalance: Money.new(:EUR, 0)},
                %{accountnumber: "61100", accountname: "Gesetzliche soziale Aufwendungen", accountbalance: Money.new(:EUR, 0)},
@@ -2561,7 +2539,7 @@ end)
              ]},
          %{
            accountgroupname: "Abschreibungen auf immaterielle Vermögensgegenstände des Anlagevermögens und Sachanlagen",
-           accounttypecode: "AK",
+           accounttypecode: "aufwand",
            accounts: [
                %{accountnumber: "62000", accountname: "Abschreibungen auf immaterielle Vermögensgegenstände", accountbalance: Money.new(:EUR, 0)},
                %{accountnumber: "62010", accountname: "Abschreibungen auf selbst geschaffene immaterielle Vermögensgegenstände", accountbalance: Money.new(:EUR, 0)},
@@ -2591,7 +2569,7 @@ end)
              ]},
          %{
            accountgroupname: "Abschreibung auf Vermögensgegenstände des Umlaufvermögens, soweit diese die üblichen Abschreibungen überschreiten",
-           accounttypecode: "AK",
+           accounttypecode: "aufwand",
            accounts: [
                %{accountnumber: "62700", accountname: "Abschreibungen auf sonstige Vermögensgegenstände des Umlaufvermögens (soweit unüblich hoch)", accountbalance: Money.new(:EUR, 0)},
                %{accountnumber: "62720", accountname: "Abschreibungen auf Umlaufvermögen, steuerrechtlich bedingt (soweit unüblich hoch)", accountbalance: Money.new(:EUR, 0)},
@@ -2604,7 +2582,7 @@ end)
                %{accountnumber: "62910", accountname: "Abschreibungen auf Forderungen gegenüber Gesellschaftern und nahe stehenden Personen (soweit unüblich hoch), § 3 Nr. 40 EStG bzw. § 8b Abs. 3 KStG8)", accountbalance: Money.new(:EUR, 0)}             ]},
          %{
            accountgroupname: "Sonstige betriebliche Aufwendungen",
-           accounttypecode: "AK",
+           accounttypecode: "aufwand",
            accounts: [
                %{accountnumber: "63000", accountname: "Sonstige betriebliche Aufwendungen", accountbalance: Money.new(:EUR, 0)},
                %{accountnumber: "63010", accountname: "Verwaltungskosten", accountbalance: Money.new(:EUR, 0)},
@@ -2785,7 +2763,7 @@ end)
        accountgroups: [
          %{
            accountgroupname: "Erträge aus Beteiligungen",
-           accounttypecode: "EK",
+           accounttypecode: "ertrag",
            accounts: [
                %{accountnumber: "70000", accountname: "Erträge aus Beteiligungen", accountbalance: Money.new(:EUR, 0)},
                %{accountnumber: "70020", accountname: "Erträge aus typisch stillen Beteiligungen", accountbalance: Money.new(:EUR, 0)},
@@ -2798,7 +2776,7 @@ end)
              ]},
          %{
            accountgroupname: "Erträge aus anderen Wertpapieren und Ausleihungen des Finanzanlagevermögens",
-           accounttypecode: "EK",
+           accounttypecode: "ertrag",
            accounts: [
                %{accountnumber: "70100", accountname: "Erträge aus anderen Wertpapieren und Ausleihungen des Finanzanlagevermögens", accountbalance: Money.new(:EUR, 0)},
                %{accountnumber: "70110", accountname: "Erträge aus Ausleihungen des Finanzanlagevermögens", accountbalance: Money.new(:EUR, 0)},
@@ -2815,7 +2793,7 @@ end)
              ]},
          %{
            accountgroupname: "Sonstige Zinsen und ähnliche Erträge",
-           accounttypecode: "EK",
+           accounttypecode: "ertrag",
            accounts: [
                %{accountnumber: "71000", accountname: "Sonstige Zinsen und ähnliche Erträge", accountbalance: Money.new(:EUR, 0)},
                %{accountnumber: "71030", accountname: "Erträge aus Anteilen an Kapitalgesellschaften (Umlaufvermögen) § 3 Nr. 40 EStG bzw. § 8b Abs. 1 und 4 KStG", accountbalance: Money.new(:EUR, 0)},
@@ -2838,21 +2816,21 @@ end)
              ]},
          %{
            accountgroupname: "Erträge aus Verlustübernahme",
-           accounttypecode: "EK",
+           accounttypecode: "ertrag",
            accounts: [
                %{accountnumber: "71900", accountname: "Erträge aus Verlustübernahme", accountbalance: Money.new(:EUR, 0)},
                %{accountnumber: "71910", accountname: "Ertragsteuerfreie Einzahlungen zum Verlustausgleich", accountbalance: Money.new(:EUR, 0)}
              ]},
          %{
            accountgroupname: "Auf Grund einer Gewinngemeinschaft, eines Gewinn- oder Teilgewinnabführungsvertrags erhaltene Gewinne",
-           accounttypecode: "EK",
+           accounttypecode: "ertrag",
            accounts: [
                %{accountnumber: "71920", accountname: "Erhaltene Gewinne auf Grund einer Gewinngemeinschaft", accountbalance: Money.new(:EUR, 0)},
                %{accountnumber: "71940", accountname: "Erhaltene Gewinne auf Grund eines Gewinn- oder Teilgewinnabführungsvertrags", accountbalance: Money.new(:EUR, 0)}
              ]},
          %{
            accountgroupname: "Abschreibungen auf Finanzanlagen und auf Wertpapiere des Umlaufvermögens",
-           accounttypecode: "AK",
+           accounttypecode: "aufwand",
            accounts: [
                %{accountnumber: "72000", accountname: "Abschreibungen auf Finanzanlagen (dauerhaft)", accountbalance: Money.new(:EUR, 0)},
                %{accountnumber: "72010", accountname: "Abschreibungen auf Finanzanlagen (nicht dauerhaft)", accountbalance: Money.new(:EUR, 0)},
@@ -2867,7 +2845,7 @@ end)
              ]},
          %{
            accountgroupname: "Zinsen und ähnliche Aufwendungen",
-           accounttypecode: "AK",
+           accounttypecode: "aufwand",
            accounts: [
                %{accountnumber: "73000", accountname: "Zinsen und ähnliche Aufwendungen", accountbalance: Money.new(:EUR, 0)},
                %{accountnumber: "73020", accountname: "Steuerlich nicht abzugsfähige andere Nebenleistungen zu Steuern § 4 Abs. 5b EStG", accountbalance: Money.new(:EUR, 0)},
@@ -2905,27 +2883,27 @@ end)
              ]},
          %{
            accountgroupname: "Aufwendungen aus Verlustübernahmen (Mutter)",
-           accounttypecode: "AK",
+           accounttypecode: "aufwand",
            accounts: [
                %{accountnumber: "73900", accountname: "Aufwendungen aus Verlustübernahme", accountbalance: Money.new(:EUR, 0)}
              ]},
          %{
            accountgroupname: "aufgrund einer Gewinngemeinschaft, eines Gewinnabführungs- oder Teilgewinnabführungsvertrags abgeführte Gewinne",
-           accounttypecode: "AK",
+           accounttypecode: "aufwand",
            accounts: [
                %{accountnumber: "73920", accountname: "Abgeführte Gewinne auf Grund einer Gewinngemeinschaft", accountbalance: Money.new(:EUR, 0)},
                %{accountnumber: "73940", accountname: "Abgeführte Gewinne auf Grund eines Gewinn- oder Teilgewinnabführungsvertrags", accountbalance: Money.new(:EUR, 0)},
              ]},
          %{
            accountgroupname: "Aufgrund einer Gewinngemeinschaft, eines Gewinnabführungs- oder Teilgewinnabführungsvertrags abgeführte Gewinne",
-           accounttypecode: "AK",
+           accounttypecode: "aufwand",
            accounts: [
                %{accountnumber: "73980", accountname: "Abgeführte Gewinnanteile (Soll) / ausgeglichene Verlustanteile (Haben) bei atypisch stiller Beteiligung", accountbalance: Money.new(:EUR, 0)},
                %{accountnumber: "73990", accountname: "Abgeführte Gewinnanteile (Soll) / ausgeglichene Verlustanteile (Haben) bei typisch stiller Beteiligung § 8 GewStG", accountbalance: Money.new(:EUR, 0)}
              ]},
          %{
            accountgroupname: "Sonstige betriebliche Erträge",
-           accounttypecode: "EK",
+           accounttypecode: "ertrag",
            accounts: [
                %{accountnumber: "74510", accountname: "Erträge durch Verschmelzung und Umwandlung", accountbalance: Money.new(:EUR, 0)},
                %{accountnumber: "74600", accountname: "Erträge aus der Anwendung von Übergangsvorschriften", accountbalance: Money.new(:EUR, 0)},
@@ -2933,7 +2911,7 @@ end)
              ]},
          %{
            accountgroupname: "Sonstige betriebliche Aufwendungen",
-           accounttypecode: "AK",
+           accounttypecode: "aufwand",
            accounts: [
                %{accountnumber: "75510", accountname: "Verluste durch Verschmelzung und Umwandlung", accountbalance: Money.new(:EUR, 0)},
                %{accountnumber: "75530", accountname: "Aufwendungen für Restrukturierungs- und Sanierungsmaßnahmen", accountbalance: Money.new(:EUR, 0)},
@@ -2943,7 +2921,7 @@ end)
              ]},
          %{
            accountgroupname: "Steuern vom Einkommen und vom Ertrag",
-           accounttypecode: "AK",
+           accounttypecode: "aufwand",
            accounts: [
                %{accountnumber: "76000", accountname: "Körperschaftsteuer", accountbalance: Money.new(:EUR, 0)},
                %{accountnumber: "76030", accountname: "Körperschaftsteuer für Vorjahre", accountbalance: Money.new(:EUR, 0)},
@@ -2960,7 +2938,7 @@ end)
              ]},
                       %{
            accountgroupname: "Steuern vom Einkommen und vom Ertrag",
-           accounttypecode: "EK",
+           accounttypecode: "ertrag",
            accounts: [
                %{accountnumber: "76310", accountname: "Kapitalertragsteuererstattung", accountbalance: Money.new(:EUR, 0)},
                %{accountnumber: "76330", accountname: "Anrechenbarer Solidaritätszuschlag auf Kapitalertragsteuer 25 %", accountbalance: Money.new(:EUR, 0)},
@@ -2972,7 +2950,7 @@ end)
              ]},
          %{
            accountgroupname: "Sonstige Steuern",
-           accounttypecode: "AK",
+           accounttypecode: "aufwand",
            accounts: [
                %{accountnumber: "76500", accountname: "Sonstige Betriebssteuern", accountbalance: Money.new(:EUR, 0)},
                %{accountnumber: "76750", accountname: "Verbrauchsteuer (sonstige Steuern)", accountbalance: Money.new(:EUR, 0)},
@@ -2983,194 +2961,194 @@ end)
              ]},
          %{
            accountgroupname: "Sonstige Steuern",
-           accounttypecode: "EK",
+           accounttypecode: "ertrag",
            accounts: [
                %{accountnumber: "76920", accountname: "Steuererstattungen Vorjahre für sonstige Steuern", accountbalance: Money.new(:EUR, 0)},
                %{accountnumber: "76940", accountname: "Erträge aus der Auflösung von Rückstellungen für sonstige Steuern", accountbalance: Money.new(:EUR, 0)}
              ]},
          %{
            accountgroupname: "Ergebnisvorträge aus dem Vorjahr",
-           accounttypecode: "EK",
+           accounttypecode: "ertrag",
            accounts: [
                %{accountnumber: "77000", accountname: "Gewinnvortrag / Ergebnisvortrag nach Verwendung", accountbalance: Money.new(:EUR, 0)}
              ]},
          %{
            accountgroupname: "Ergebnisvorträge aus dem Vorjahr (Vereine /Stiftungen) / Verlustvortrag aus dem Vorjahr (gGmbH)",
-           accounttypecode: "AK",
+           accounttypecode: "aufwand",
            accounts: [
                %{accountnumber: "77200", accountname: "Verlustvortrag / Ergebnisvortrag nach Verwendung", accountbalance: Money.new(:EUR, 0)}
              ]},
          %{
            accountgroupname: "Entnahme aus der Kapitalrücklage (gGmbH / Stiftungen)",
-           accounttypecode: "PBK",
+           accounttypecode: "passiv",
            accounts: [
                %{accountnumber: "77300", accountname: "Entnahmen aus der Kapitalrücklage", accountbalance: Money.new(:EUR, 0)}
              ]},
          %{
            accountgroupname: "Entnahmen aus der gesetzlichen Rücklage",
-           accounttypecode: "PBK",
+           accounttypecode: "passiv",
            accounts: [
                %{accountnumber: "77320", accountname: "Entnahmen aus der gesetzlichen Rücklage", accountbalance: Money.new(:EUR, 0)}
              ]},
          %{
            accountgroupname: "Entnahmen aus der Rücklage für Anteile an einem herrschenden oder mehrheitlich beteiligten Unternehmen",
-           accounttypecode: "PBK",
+           accounttypecode: "passiv",
            accounts: [
                %{accountnumber: "77340", accountname: "Entnahmen aus der Rücklage für Anteile an einem herrschenden oder mehrheitlich beteiligten Unternehmen", accountbalance: Money.new(:EUR, 0)}
              ]},
          %{
            accountgroupname: "Entnahmen aus satzungsmäßigen Rücklagen",
-           accounttypecode: "PBK",
+           accounttypecode: "passiv",
            accounts: [
                %{accountnumber: "77360", accountname: "Entnahmen aus satzungsmäßigen Rücklagen", accountbalance: Money.new(:EUR, 0)}
              ]},
          %{
            accountgroupname: "Entnahmen aus anderen Gewinnrücklagen (gGmbH)/ sonstigen Ergebnisrücklagen (Vereine/Stiftungen)",
-           accounttypecode: "PBK",
+           accounttypecode: "passiv",
            accounts: [
                %{accountnumber: "77380", accountname: "Entnahmen aus anderen Gewinnrücklagen / aus sonstigen Ergebnisrücklagen", accountbalance: Money.new(:EUR, 0)}
              ]},
          %{
            accountgroupname: "Ertrag aus Kapitalherabsetzung",
-           accounttypecode: "EK",
+           accounttypecode: "ertrag",
            accounts: [
                %{accountnumber: "77400", accountname: "Erträge aus Kapitalherabsetzung", accountbalance: Money.new(:EUR, 0)}
              ]},
          %{
            accountgroupname: "Entnahmen aus anderen Gewinnrücklagen (gGmbH) / Verminderung des Vereins-/Stiftungskapitals aus realisierten Vermögensumschichtungen",
-           accounttypecode: "PBK",
+           accounttypecode: "passiv",
            accounts: [
                %{accountnumber: "77450", accountname: "Verminderung des Kapitals aus realisierten Vermögensumschichtungen", accountbalance: Money.new(:EUR, 0)}
              ]},
          %{
            accountgroupname: "Entnahme aus dem Vereinskapital / den sonstigen nicht zeitnah zu verwendenden Mitteln (Stiftungen) / der Kapitalrücklage (gGmbH)",
-           accounttypecode: "PBK",
+           accounttypecode: "passiv",
            accounts: [
                %{accountnumber: "77470", accountname: "Entnahmen aus den sonstigen nicht zeitnah zu verwendenden Mitteln / dem Vereinskapital", accountbalance: Money.new(:EUR, 0)}
              ]},
           %{
            accountgroupname: "Entnahmen aus anderen Gewinnrücklagen (gGmbH) / der gebundenen Rücklage (Vereine/Stiftungen)",
-           accounttypecode: "PBK",
+           accounttypecode: "passiv",
            accounts: [
                %{accountnumber: "77490", accountname: "Entnahmen aus gebundenen Rücklagen nach § 62 Abs. 1 Nr. 1 u. 2 AO", accountbalance: Money.new(:EUR, 0)}
              ]},
           %{
            accountgroupname: "Entnahmen aus anderen Gewinnrücklagen (gGmbH) / der freien Rücklage (Vereine / Stiftungen)",
-           accounttypecode: "PBK",
+           accounttypecode: "passiv",
            accounts: [
                %{accountnumber: "77510", accountname: "Entnahmen aus freien Rücklagen nach § 62 Abs. 1 Nr. 3 AO", accountbalance: Money.new(:EUR, 0)}
              ]},
           %{
            accountgroupname: "Entnahmen aus anderen Gewinnrücklagen (gGmbH) / der Rücklage zum Erwerb von Gesellschaftsrechten (Vereine / Stiftungen)",
-           accounttypecode: "PBK",
+           accounttypecode: "passiv",
            accounts: [
                %{accountnumber: "77530", accountname: "Entnahmen aus Rücklagen zum Erwerb von Gesellschaftsrechten nach § 62 Abs. 1 Nr. 4 AO", accountbalance: Money.new(:EUR, 0)}
              ]},
           %{
            accountgroupname: "Verminderung des nutzungsgebundenen Kapitals",
-           accounttypecode: "PBK",
+           accounttypecode: "passiv",
            accounts: [
                %{accountnumber: "77550", accountname: "Verminderung des nutzungsgebundenen Kapitals", accountbalance: Money.new(:EUR, 0)}
              ]},
           %{
            accountgroupname: "Entnahmen aus der Kapitalerhaltungsrücklage (Stiftungen)",
-           accounttypecode: "PBK",
+           accounttypecode: "passiv",
            accounts: [
                %{accountnumber: "77570", accountname: "Entnahmen aus der Kapitalerhaltungsrücklage", accountbalance: Money.new(:EUR, 0)}
              ]},
           %{
            accountgroupname: "Entnahmen aus der Ansparrücklage (Stiftungen)",
-           accounttypecode: "PBK",
+           accounttypecode: "passiv",
            accounts: [
                %{accountnumber: "77590", accountname: "Entnahmen aus der Ansparrücklage nach § 62 Abs. 4 AO", accountbalance: Money.new(:EUR, 0)}
              ]},
           %{
            accountgroupname: "Einstellung in die Kapitalrücklage (gGmbH / Stiftungen)",
-           accounttypecode: "PBK",
+           accounttypecode: "passiv",
            accounts: [
                %{accountnumber: "77600", accountname: "Einstellungen in die Kapitalrücklage nach den Vorschriften über die vereinfachte Kapitalherabsetzung", accountbalance: Money.new(:EUR, 0)}
              ]},
           %{
            accountgroupname: "Einstellungen in die gesetzlichen Rücklage",
-           accounttypecode: "PBK",
+           accounttypecode: "passiv",
            accounts: [
                %{accountnumber: "77620", accountname: "Einstellungen in die gesetzliche Rücklage", accountbalance: Money.new(:EUR, 0)}
              ]},
           %{
            accountgroupname: "Einstellungen in die Rücklage für Anteile an einem herrschenden oder mehrheitlich beteiligten Unternehmen",
-           accounttypecode: "PBK",
+           accounttypecode: "passiv",
            accounts: [
                %{accountnumber: "77640", accountname: "Einstellungen in die Rücklage für Anteile an einem herrschenden oder mehrheitlich beteiligten Unternehmen", accountbalance: Money.new(:EUR, 0)}
              ]},
           %{
            accountgroupname: "Einstellungen in die satzungsmäßigen Rücklagen",
-           accounttypecode: "PBK",
+           accounttypecode: "passiv",
            accounts: [
                %{accountnumber: "77660", accountname: "Einstellungen in satzungsmäßige Rücklagen", accountbalance: Money.new(:EUR, 0)}
              ]},
           %{
            accountgroupname: "Einstellungen in andere Gewinnrücklagen (gGmbH) / sonstigen Ergebnisrücklagen (Vereine/Stiftungen)",
-           accounttypecode: "PBK",
+           accounttypecode: "passiv",
            accounts: [
                %{accountnumber: "77680", accountname: "Einstellungen in andere Gewinnrücklagen / sonstige Ergebnisrücklagen", accountbalance: Money.new(:EUR, 0)}
              ]},
           %{
            accountgroupname: "Steuerliches Mehr-/Minderergebnis lfd. Jahr (steuerlicher Ausgleichsposten)",
-           accounttypecode: "PBK",
+           accounttypecode: "passiv",
            accounts: [
                %{accountnumber: "77690", accountname: "Änderung steuerlicher Ausgleichsposten (Körperschaften)", accountbalance: Money.new(:EUR, 0)}
              ]},
           %{
            accountgroupname: "Einstellung in andere Gewinnrücklagen (gGmbH) / Erhöhung des Vereins-/Stiftungskapitals aus realisierten Vermögensumschichtungen",
-           accounttypecode: "PBK",
+           accounttypecode: "passiv",
            accounts: [
                %{accountnumber: "77750", accountname: "Erhöhung des Kapitals aus Vermögensumschichtungen", accountbalance: Money.new(:EUR, 0)}
              ]},
           %{
            accountgroupname: "Einstellung in das Vereinskapital / die sonstigen nicht zeitnah zu verwendenden Mittel (Stiftung) / die Kapitalrücklage (gGmbH)",
-           accounttypecode: "PBK",
+           accounttypecode: "passiv",
            accounts: [
                %{accountnumber: "77770", accountname: "Einstellungen in die sonstigen nicht zeitnah zu verwendenden Mittel / das Vereinskapital", accountbalance: Money.new(:EUR, 0)}
              ]},
           %{
            accountgroupname: "Einstellung in anderen Gewinnrücklagen (gGmbH) / die gebundene Rücklage(Vereine/Stiftungen)",
-           accounttypecode: "PBK",
+           accounttypecode: "passiv",
            accounts: [
                %{accountnumber: "77790", accountname: "Einstellungen in gebundene Rücklagen nach § 62 Abs. 1 Nr. 1 u. 2 AO", accountbalance: Money.new(:EUR, 0)}
              ]},
           %{
            accountgroupname: "Einstellung in andere Gewinnrücklagen (gGmbH) / die freie Rücklage (Vereine/Stiftungen)",
-           accounttypecode: "PBK",
+           accounttypecode: "passiv",
            accounts: [
                %{accountnumber: "77810", accountname: "Einstellungen in freie Rücklagen nach § 62 Abs. 1 Nr. 3 AO", accountbalance: Money.new(:EUR, 0)}
              ]},
           %{
            accountgroupname: "Einstellung in andere Gewinnrücklagen (gGmbH) / die Rücklage zum Erwerb von Gesellschaftsrechten (Vereine / Stiftungen)",
-           accounttypecode: "PBK",
+           accounttypecode: "passiv",
            accounts: [
                %{accountnumber: "77830", accountname: "Einstellungen in Rücklagen zum Erwerb von Gesellschaftsrechten nach § 62 Abs. 1 Nr. 4 AO", accountbalance: Money.new(:EUR, 0)}
              ]},
           %{
            accountgroupname: "Erhöhung des nutzungsgebundenen Kapitals",
-           accounttypecode: "PBK",
+           accounttypecode: "passiv",
            accounts: [
                %{accountnumber: "77850", accountname: "Erhöhung des nutzungsgebundenen Kapitals", accountbalance: Money.new(:EUR, 0)}
              ]},
           %{
            accountgroupname: "Einstellungen in die Kapitalerhaltungsrücklage (Stiftungen)",
-           accounttypecode: "PBK",
+           accounttypecode: "passiv",
            accounts: [
                %{accountnumber: "77870", accountname: "Einstellungen in die Kapitalerhaltungsrücklage", accountbalance: Money.new(:EUR, 0)}
              ]},
           %{
            accountgroupname: "Einstellungen in die Ansparrücklage (Stiftungen)",
-           accounttypecode: "PBK",
+           accounttypecode: "passiv",
            accounts: [
                %{accountnumber: "77890", accountname: "Einstellungen in die Ansparrücklage nach § 62 Abs. 4 AO", accountbalance: Money.new(:EUR, 0)}
              ]},
           %{
            accountgroupname: "Ausschüttung",
-           accounttypecode: "PBK",
+           accounttypecode: "passiv",
            accounts: [
                %{accountnumber: "77900", accountname: "Vorabausschüttung", accountbalance: Money.new(:EUR, 0)}
              ]}
@@ -3180,7 +3158,7 @@ end)
        accountgroups: [
          %{
            accountgroupname: "Saldenvorträge",
-           accounttypecode: "VORT",
+           accounttypecode: "neutral",
              accounts: [
                %{accountnumber: "90000", accountname: "Saldenvorträge, Sachkonten", accountbalance: Money.new(:EUR, 0)},
                %{accountnumber: "90080", accountname: "Saldenvorträge, Debitoren", accountbalance: Money.new(:EUR, 0)},
@@ -3215,85 +3193,85 @@ end)
              ]},
                    %{
            accountgroupname: "Verbindlichkeiten aus Lieferungen und Leistungen",
-           accounttypecode: "PBK",
+           accounttypecode: "passiv",
              accounts: [
                %{accountnumber: "92920", accountname: "Statistisches Konto Fremdgeld", accountbalance: Money.new(:EUR, 0)}
              ]},
                    %{
            accountgroupname: "Sonstige Verbindlichkeiten",
-           accounttypecode: "PBK",
+           accounttypecode: "passiv",
              accounts: [
                %{accountnumber: "92930", accountname: "Gegenkonto zu 92920", accountbalance: Money.new(:EUR, 0)}
              ]},
                    %{
            accountgroupname: "Einlagen stiller Gesellschafter",
-           accounttypecode: "PBK",
+           accounttypecode: "passiv",
              accounts: [
                %{accountnumber: "92950", accountname: "Einlagen atypisch stiller Gesellschafter", accountbalance: Money.new(:EUR, 0)}
              ]},
                    %{
            accountgroupname: "steuerlicher Ausgleichsposten",
-           accounttypecode: "PBK",
+           accounttypecode: "passiv",
              accounts: [
                %{accountnumber: "92970", accountname: "Steuerlicher Ausgleichsposten (Körperschaften)", accountbalance: Money.new(:EUR, 0)}
              ]},
                    %{
            accountgroupname: "Forderungen aus Lieferungen und Leistungen",
-           accounttypecode: "ABK",
+           accounttypecode: "aktiv",
              accounts: [
                %{accountnumber: "99400", accountname: "Bewertungskorrektur zu Forderungen aus Lieferungen und Leistungen (Währungsumrechnung)", accountbalance: Money.new(:EUR, 0)}
              ]},
                    %{
            accountgroupname: "Sonstige Verbindlichkeiten",
-           accounttypecode: "PBK",
+           accounttypecode: "passiv",
              accounts: [
                %{accountnumber: "99410", accountname: "Bewertungskorrektur zu sonstigen Verbindlichkeiten (Währungsumrechnung)", accountbalance: Money.new(:EUR, 0)}
              ]},
                    %{
            accountgroupname: "Kassenbestand, Bundesbankguthaben, Guthaben bei Kreditinstituten und Schecks",
-           accounttypecode: "ABK",
+           accounttypecode: "aktiv",
              accounts: [
                %{accountnumber: "99420", accountname: "Bewertungskorrektur zu Guthaben bei Kreditinstituten (Bewertung Finanzmittelfonds)", accountbalance: Money.new(:EUR, 0)}
              ]},
                    %{
            accountgroupname: "Verbindlichkeiten gegenüber Kreditinstituten",
-           accounttypecode: "PBK",
+           accounttypecode: "passiv",
              accounts: [
                %{accountnumber: "99430", accountname: "Bewertungskorrektur zu Verbindlichkeiten gegenüber Kreditinstituten (Bewertung Finanzmittelfonds)", accountbalance: Money.new(:EUR, 0)}
              ]},
                    %{
            accountgroupname: "Verbindlichkeiten aus Lieferungen und Leistungen",
-           accounttypecode: "PBK",
+           accounttypecode: "passiv",
              accounts: [
                %{accountnumber: "99440", accountname: "Bewertungskorrektur zu Verbindlichkeiten aus Lieferungen und Leistungen (Währungsumrechnung)", accountbalance: Money.new(:EUR, 0)}
              ]},
                    %{
            accountgroupname: "Sonstige Vermögensgegenstände",
-           accounttypecode: "ABK",
+           accounttypecode: "aktiv",
              accounts: [
                %{accountnumber: "99450", accountname: "Bewertungskorrektur zu sonstigen Vermögensgegenständen (Währungsumrechnung)", accountbalance: Money.new(:EUR, 0)}
              ]},
                    %{
            accountgroupname: "Forderungen gegen verbundene Unternehmen",
-           accounttypecode: "ABK",
+           accounttypecode: "aktiv",
              accounts: [
                %{accountnumber: "99460", accountname: "Bewertungskorrektur zu Forderungen gegen verbundene Unternehmen", accountbalance: Money.new(:EUR, 0)}
              ]},
                    %{
            accountgroupname: "Forderungen gegen Unternehmen, mit denen ein Beteiligungsverhältnis besteht",
-           accounttypecode: "ABK",
+           accounttypecode: "aktiv",
              accounts: [
                %{accountnumber: "99470", accountname: "Bewertungskorrektur zu Forderungen gegen Unternehmen, mit denen ein Beteiligungsverhältnis besteht", accountbalance: Money.new(:EUR, 0)}
              ]},
                    %{
            accountgroupname: "Verbindlichkeiten gegenüber verbundenen Unternehmen",
-           accounttypecode: "PBK",
+           accounttypecode: "passiv",
              accounts: [
                %{accountnumber: "99480", accountname: "Bewertungskorrektur zu Verbindlichkeiten gegenüber verbundenen Unternehmen", accountbalance: Money.new(:EUR, 0)}
              ]},
                    %{
            accountgroupname: "Verbindlichkeiten gegenüber Unternehmen, mit denen ein Beteiligungsverhältnis besteht",
-           accounttypecode: "PBK",
+           accounttypecode: "passiv",
              accounts: [
                %{accountnumber: "99490", accountname: "Bewertungskorrektur zu Verbindlichkeiten gegenüber Unternehmen, mit denen ein Beteiligungsverhältnis besteht", accountbalance: Money.new(:EUR, 0)}
              ]}
@@ -3302,41 +3280,54 @@ end)
   ]
 
 # 3. Verarbeitung
- Enum.each(accounting_data, fn accountclass_data ->
-   # 1. Klasse sicher abrufen oder erstellen
-   accountclass =
-     Repo.get_by(Accountclass, accountclassnumber: accountclass_data.accountclass) ||
-     Repo.insert!(%Accountclass{
-       accountclassnumber: accountclass_data.accountclass,
-       accountclassname: accountclass_data.accountclassname
-     })
+defmodule Sportyweb.SKRHelper do
+  def create_skr42(club, accounting_data) do
+    Enum.each(accounting_data, fn accountclass_data ->
+      # 1. Klasse sicher abrufen oder erstellen
+      accountclass =
+        Repo.get_by(Accountclass, club_id: club.id, accountclassnumber: accountclass_data.accountclass) ||
+        Repo.insert!(%Accountclass{
+          accountclassnumber: accountclass_data.accountclass,
+          accountclassname: accountclass_data.accountclassname,
+          club_id: club.id
+        })
 
-   Enum.each(accountclass_data.accountgroups, fn accountgroup_data ->
-    selected_accounttype = accounttypes[accountgroup_data.accounttypecode]
+      Enum.each(accountclass_data.accountgroups, fn accountgroup_data ->
+        accountgroup =
+          Repo.get_by(Accountgroup, club_id: club.id, accountgroupname: accountgroup_data.accountgroupname) ||
+          Repo.insert!(%Accountgroup{
+            accountgroupname: accountgroup_data.accountgroupname,
+            club_id: club.id
+          })
 
-    accountgroup =
-      Repo.get_by(Accountgroup, accountgroupname: accountgroup_data.accountgroupname) ||
-      Repo.insert!(%Accountgroup{
-        accountgroupname: accountgroup_data.accountgroupname
-      })
+          Enum.each(accountgroup_data.accounts, fn account_data ->
 
-      Enum.each(accountgroup_data.accounts, fn account_data ->
+            unless Repo.get_by(Account, club_id: club.id, accountnumber: account_data.accountnumber) do
 
-        unless Repo.get_by(Account, accountnumber: account_data.accountnumber) do
+              # Wir bauen eine Map mit ALLEN benötigten Daten und IDs
+                account_attrs = Map.merge(account_data, %{
+                  accountclass_id: accountclass.id, # Zugriff auf äußere Schleife Accountclasses
+                  accountgroup_id: accountgroup.id, # Zugriff auf äußere Schleife Accountgroups
+                  accounttypecode: accountgroup_data.accounttypecode, # Zugriff auf Accounttypecode der äußeren Schleife Accountgroups
+                  club_id: club.id # Zugriff auf Club.id aus dem Aufruf
+                })
+                |> Map.new(fn {k, v} -> {Atom.to_string(k), v} end)
 
-          # Wir bauen eine Map mit ALLEN benötigten Daten und IDs
-            account_attrs = Map.merge(account_data, %{
-              accountclass_id: accountclass.id, # Zugriff auf äußere Schleife Accountclasses
-              accountgroup_id: accountgroup.id, # Zugriff auf äußere Schleife Accountgroups
-              accounttype_id: selected_accounttype.id # Zugriff auf Accounttype der äußeren Schleife Accountgroups
-            })
+              %Account{}
+              |> Account.changeset(account_attrs)
+              |> Repo.insert!()
+            end
 
-          %Account{}
-          |> Account.changeset(account_attrs)
-          |> Repo.insert!()
-        end
+          end)
 
       end)
+    end)
+  end
+end
 
-   end)
-end)
+#Schritt 4: Wir erzeugen die Datenbankeinträge durch den Methodenaufruf.
+Sportyweb.SKRHelper.create_skr42(club_1, accounting_data)
+Sportyweb.SKRHelper.create_skr42(club_2, accounting_data)
+Sportyweb.SKRHelper.create_skr42(club_3, accounting_data)
+Sportyweb.SKRHelper.create_skr42(club_4, accounting_data)
+Sportyweb.SKRHelper.create_skr42(testclub, accounting_data)

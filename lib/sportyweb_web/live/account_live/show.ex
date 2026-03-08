@@ -4,25 +4,32 @@ defmodule SportywebWeb.AccountLive.Show do
   alias Sportyweb.Accounting
 
   @impl true
-  def mount(_params, _session, socket) do
-    {:ok, socket}
+  def mount(%{"id" => id}, _session, socket) do
+    account = Accounting.get_account!(id)
+
+    {:ok, socket
+      |> assign(:club_navigation_current_item, :accounts)
+      |> assign(:account, account)
+      |> assign(:club, account.club)
+  }
   end
 
   @impl true
   def handle_params(%{"id" => id}, _, socket) do
     # Preload Data from references
-    item = Sportyweb.Accounting.get_account!(id)
-
-    item
-    |> Sportyweb.Repo.preload([:accountclass, :accountgroup, :accounttype])
+    account = Accounting.get_account!(id)
 
     {:noreply,
      socket
-     |> assign(:page_title, page_title(socket.assigns.live_action))
-     |> assign(:account, item)
-     |> assign(:item, item)}
+     |> assign(:page_title, "Konto: #{account.accountnumber}")
+     |> assign(:account, account)
+     |> assign(:club, account.club)}
   end
 
-  defp page_title(:show), do: "Show Account"
-  defp page_title(:edit), do: "Edit Account"
+  defp display_money(money_struct) do
+    case Money.to_string(money_struct) do
+      {:ok, string} -> string
+      _ -> "0,00 €"
+    end
+  end
 end

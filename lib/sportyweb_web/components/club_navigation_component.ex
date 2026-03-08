@@ -145,6 +145,86 @@ defmodule SportywebWeb.ClubNavigationComponent do
         </ul>
 
         <.link
+          phx-target={@myself}
+          phx-click="toggle_submenu"
+          phx-value-item={:accounting}
+          class={[
+            @classes_menu_item,
+            if(@club_navigation_current_item == :accounting, do: @classes_menu_item_active)
+          ]}
+        >
+          <.icon name="hero-calculator" class={@classes_icon} />
+          <span class="truncate">Buchführung</span>
+          <.icon
+            name="hero-chevron-right"
+            class={Enum.join([@classes_chevron, if(@show_submenu_accounting, do: "rotate-90")], " ")}
+          />
+        </.link>
+
+        <ul class={["mb-1 px-2", if(!@show_submenu_accounting, do: "hidden")]}>
+          <li>
+            <.link
+              navigate={~p"/clubs/#{@club}/accounts"}
+              class={[
+                @classes_menu_item,
+                @classes_submenu_item,
+                if(@club_navigation_current_item == :accounting, do: @classes_menu_item_active)
+                  ]}
+            >
+              <span class="truncate">Kontenverwaltung</span>
+            </.link>
+          </li>
+          <li>
+            <.link
+              navigate={~p"/clubs/#{@club}/accounts"}
+              class={[
+                @classes_menu_item,
+                @classes_submenu_item,
+                if(@club_navigation_current_item == :accounting, do: @classes_menu_item_active)
+                  ]}
+            >
+              <span class="truncate">Belegwesen</span>
+            </.link>
+          </li>
+          <li>
+            <.link
+              navigate={~p"/clubs/#{@club}/accounts"}
+              class={[
+                @classes_menu_item,
+                @classes_submenu_item,
+                if(@club_navigation_current_item == :accounting, do: @classes_menu_item_active)
+                  ]}
+            >
+              <span class="truncate">Journal</span>
+            </.link>
+          </li>
+          <li>
+            <.link
+              navigate={~p"/clubs/#{@club}/accounts"}
+              class={[
+                @classes_menu_item,
+                @classes_submenu_item,
+                if(@club_navigation_current_item == :accounting, do: @classes_menu_item_active)
+                  ]}
+            >
+              <span class="truncate">Hauptbuch</span>
+            </.link>
+          </li>
+          <li>
+            <.link
+              navigate={~p"/clubs/#{@club}/accounts"}
+              class={[
+                @classes_menu_item,
+                @classes_submenu_item,
+                if(@club_navigation_current_item == :accounting, do: @classes_menu_item_active)
+                  ]}
+            >
+              <span class="truncate">Auswertungen</span>
+            </.link>
+          </li>
+        </ul>
+
+        <.link
           navigate={~p"/clubs/#{@club}/roles"}
           class={[
             @classes_menu_item,
@@ -167,6 +247,12 @@ defmodule SportywebWeb.ClubNavigationComponent do
         assigns.club_navigation_current_item == :fees ||
         assigns.club_navigation_current_item == :subsidies
 
+    show_submenu_accounting =
+      assigns.club_navigation_current_item == :accounts ||
+      assigns.club_navigation_current_item == :accountclasses ||
+      assigns.club_navigation_current_item == :accountgroups ||
+      assigns.club_navigation_current_item == :accounttypes
+
     {:ok,
      socket
      |> assign(assigns)
@@ -178,11 +264,18 @@ defmodule SportywebWeb.ClubNavigationComponent do
      |> assign(:classes_submenu_item, "pl-11 text-sm font-normal")
      |> assign(:classes_icon, "text-zinc-400 group-hover:text-zinc-500 mr-4 h-6 w-6")
      |> assign(:classes_chevron, "text-zinc-600 ml-auto h-4 w-4")
-     |> assign(:show_submenu_finances, show_submenu_finances)}
+     |> assign(:show_submenu_finances, show_submenu_finances)
+     |> assign(:show_submenu_accounting, show_submenu_accounting)}
   end
 
   @impl true
   def handle_event("toggle_submenu", %{"item" => "finances"}, socket) do
     {:noreply, assign(socket, :show_submenu_finances, !socket.assigns.show_submenu_finances)}
   end
+
+  @impl true
+  def handle_event("toggle_submenu", %{"item" => "accounting"}, socket) do
+    {:noreply, assign(socket, :show_submenu_accounting, !socket.assigns.show_submenu_accounting)}
+  end
+
 end

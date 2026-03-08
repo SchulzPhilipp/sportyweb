@@ -34,85 +34,121 @@ defmodule SportywebWeb.AccountclassLiveTest do
   describe "Index" do
     setup [:create_accountclass]
 
-    test "lists all accountclasses", %{conn: conn, user: user, accountclass: accountclass} do
+    test "lists all accountclasses - default redirect", %{conn: conn, user: user} do
       {:error, _} = live(conn, ~p"/accountclasses")
 
       conn = conn |> log_in_user(user)
 
-      {:ok, _index_live, html} = live(conn, ~p"/accountclasses")
+      {:ok, conn} =
+        conn
+        |> live(~p"/accountclasses")
+        |> follow_redirect(conn, ~p"/clubs")
 
-      assert html =~ "Listing Accountclasses"
-      assert html =~ accountclass.accountclassnumber
+      assert conn.resp_body =~ "Vereinsübersicht"
     end
+
+
+    test "lists all accountclasses", %{conn: conn, user: user, accountclass: accountclass} do
+      {:error, _} = live(conn, ~p"/clubs/#{accountclass.club_id}/accounts")
+
+      conn = conn |> log_in_user(user)
+
+      {:ok, _index_live, html} = live(conn, ~p"/clubs/#{accountclass.club_id}/accountclasses")
+
+      assert html =~ "Kontenklassen"
+      assert html =~ accountclass.accountclassname
+    end
+end
+
+describe "New/Edit" do
+    setup [:create_accountclass]
 
     test "saves new accountclass", %{conn: conn, user: user} do
-      {:error, _} = live(conn, ~p"/accountclasses")
+      club = club_fixture()
+
+      {:error, _} = live(conn, ~p"/clubs/#{club}/accountclasses/new")
 
       conn = conn |> log_in_user(user)
+      {:ok, new_live, html} = live(conn, ~p"/clubs/#{club}/accountclasses/new")
 
-      {:ok, index_live, _html} = live(conn, ~p"/accountclasses")
+      assert html =~ "Kontenklasse erstellen"
 
-      assert index_live |> element("a", "New Accountclass") |> render_click() =~
-               "New Accountclass"
-
-      assert_patch(index_live, ~p"/accountclasses/new")
-
-      assert index_live
+      assert new_live
              |> form("#accountclass-form", accountclass: @invalid_attrs)
              |> render_change() =~ "can&#39;t be blank"
 
-      assert index_live
-             |> form("#accountclass-form", accountclass: @create_attrs)
-             |> render_submit()
+      {:ok, _, html} =
+        new_live
+        |> form("#accountclass-form", accountclass: @create_attrs)
+        |> render_submit()
+        |> follow_redirect(conn, ~p"/clubs/#{club}/accountclasses")
 
-      assert_patch(index_live, ~p"/accountclasses")
-
-      html = render(index_live)
-      assert html =~ "Accountclass created successfully"
-      assert html =~ "some accountclassnumber"
+      assert html =~ "Kontenklasse erfolgreich erstellt"
+      assert html =~ "some accountclassname"
     end
 
-    test "updates accountclass in listing", %{conn: conn, user: user, accountclass: accountclass} do
-      {:error, _} = live(conn, ~p"/accountclasses")
+    test "cancels save new accountclass", %{conn: conn, user: user} do
+      club = club_fixture()
 
       conn = conn |> log_in_user(user)
+      {:ok, new_live, _html} = live(conn, ~p"/clubs/#{club}/accountclasses/new")
 
-      {:ok, index_live, _html} = live(conn, ~p"/accountclasses")
+      {:ok, _, _html} =
+        new_live
+        |> element("#accountclass-form a", "Abbrechen")
+        |> render_click()
+        |> follow_redirect(conn, ~p"/clubs/#{club}/accountclasses")
+    end
 
-      assert index_live
-             |> element("#accountclasses-#{accountclass.id} a", "Edit")
-             |> render_click() =~
-               "Edit Accountclass"
+    test "updates accountclass", %{conn: conn, user: user, accountclass: accountclass} do
+      {:error, _} = live(conn, ~p"/accountclasses/#{accountclass}/edit")
 
-      assert_patch(index_live, ~p"/accountclasses/#{accountclass}/edit")
+      conn = conn |> log_in_user(user)
+      {:ok, edit_live, html} = live(conn, ~p"/accountclasses/#{accountclass}/edit")
 
-      assert index_live
+      assert html =~ "Kontenklasse bearbeiten"
+
+      assert edit_live
              |> form("#accountclass-form", accountclass: @invalid_attrs)
              |> render_change() =~ "can&#39;t be blank"
 
-      assert index_live
-             |> form("#accountclass-form", accountclass: @update_attrs)
-             |> render_submit()
+      {:ok, _, html} =
+        edit_live
+        |> form("#accountclass-form", accountclass: @update_attrs)
+        |> render_submit()
+        |> follow_redirect(conn, ~p"/accountclasses/#{accountclass}")
 
-      assert_patch(index_live, ~p"/accountclasses")
-
-      html = render(index_live)
-      assert html =~ "Accountclass updated successfully"
-      assert html =~ "some updated accountclassnumber"
+      assert html =~ "Kontenklasse erfolgreich aktualisiert"
+      assert html =~ "some updated accountclassname"
     end
 
-    test "deletes accountclass in listing", %{conn: conn, user: user, accountclass: accountclass} do
-      {:error, _} = live(conn, ~p"/accountclasses")
+    test "cancels updates accountclass", %{conn: conn, user: user, accountclass: accountclass} do
+      conn = conn |> log_in_user(user)
+      {:ok, edit_live, _html} = live(conn, ~p"/accountclasses/#{accountclass}/edit")
+
+      {:ok, _, _html} =
+        edit_live
+        |> element("#accountclass-form a", "Abbrechen")
+        |> render_click()
+        |> follow_redirect(conn, ~p"/accountclasses/#{accountclass}")
+    end
+
+    test "deletes accountclass", %{conn: conn, user: user, accountclass: accountclass} do
+      {:error, _} = live(conn, ~p"/accountclasses/#{accountclass}/edit")
 
       conn = conn |> log_in_user(user)
+      {:ok, edit_live, html} = live(conn, ~p"/accountclasses/#{accountclass}/edit")
+      assert html =~ "Default Class"
 
-      {:ok, index_live, _html} = live(conn, ~p"/accountclasses")
+      {:ok, _, html} =
+        edit_live
+        |> element("#accountclass-form button", "Löschen")
+        |> render_click()
+        |> follow_redirect(conn, ~p"/clubs/#{accountclass.club_id}/accountclasses")
 
-      assert index_live
-             |> element("#accountclasses-#{accountclass.id} a", "Delete")
-             |> render_click()
-
-      refute has_element?(index_live, "#accountclasses-#{accountclass.id}")
+      assert html =~ "Kontenklasse erfolgreich gelöscht"
+      assert html =~ "Kontenklassen"
+      refute html =~ "Default Class"
     end
   end
 
@@ -123,42 +159,11 @@ defmodule SportywebWeb.AccountclassLiveTest do
       {:error, _} = live(conn, ~p"/accountclasses/#{accountclass}")
 
       conn = conn |> log_in_user(user)
-
       {:ok, _show_live, html} = live(conn, ~p"/accountclasses/#{accountclass}")
 
-      assert html =~ "Show Accountclass"
-      assert html =~ accountclass.accountclassnumber
-    end
-
-    test "updates accountclass within modal", %{
-      conn: conn,
-      user: user,
-      accountclass: accountclass
-    } do
-      {:error, _} = live(conn, ~p"/accountclasses/#{accountclass}")
-
-      conn = conn |> log_in_user(user)
-
-      {:ok, show_live, _html} = live(conn, ~p"/accountclasses/#{accountclass}")
-
-      assert show_live |> element("a", "Edit") |> render_click() =~
-               "Edit Accountclass"
-
-      assert_patch(show_live, ~p"/accountclasses/#{accountclass}/show/edit")
-
-      assert show_live
-             |> form("#accountclass-form", accountclass: @invalid_attrs)
-             |> render_change() =~ "can&#39;t be blank"
-
-      assert show_live
-             |> form("#accountclass-form", accountclass: @update_attrs)
-             |> render_submit()
-
-      assert_patch(show_live, ~p"/accountclasses/#{accountclass}")
-
-      html = render(show_live)
-      assert html =~ "Accountclass updated successfully"
-      assert html =~ "some updated accountclassnumber"
+      assert html =~ "Kontenklasse"
+      assert html =~ accountclass.accountclassname
     end
   end
+
 end

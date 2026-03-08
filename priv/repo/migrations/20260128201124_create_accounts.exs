@@ -8,22 +8,26 @@ defmodule Sportyweb.Repo.Migrations.CreateAccounts do
       add :accountname, :string, null: false
       add :accountbalance, :money_with_currency
 
+      add :accounttypecode, :string, null: false, default: "neutral"
+
+      add :club_id, references(:clubs, on_delete: :delete_all, type: :binary_id), null: false
       add :accountclass_id, references(:accountclasses, on_delete: :restrict, type: :binary_id),
         null: false
 
       add :accountgroup_id, references(:accountgroups, on_delete: :restrict, type: :binary_id),
         null: false
 
-      add :accounttype_id, references(:accounttypes, on_delete: :restrict, type: :binary_id),
-        null: false
-
       timestamps(type: :utc_datetime)
     end
 
+    create index(:accounts, [:club_id])
     create index(:accounts, [:accountclass_id])
     create index(:accounts, [:accountgroup_id])
-    create index(:accounts, [:accounttype_id])
 
-    create unique_index(:accounts, [:accountnumber])
+    create unique_index(:accounts, [:club_id, :accountnumber])
+
+    create constraint(:accounts, "accounttypecode_valid_values",
+      check: "accounttypecode IN ('aktiv', 'passiv', 'aufwand', 'ertrag', 'neutral')"
+    )
   end
 end

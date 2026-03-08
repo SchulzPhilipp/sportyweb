@@ -1,46 +1,31 @@
 <.header>
-  Listing Accountgroups
+  {@page_title}
   <:actions>
-    <.link patch={~p"/accountgroups/new"}>
-      <.button>New Accountgroup</.button>
+    <.link navigate={~p"/clubs/#{@club}/accountgroups/new"}>
+      <.button>Kontengruppe erstellen</.button>
     </.link>
   </:actions>
 </.header>
 
-<.table
-  id="accountgroups"
-  rows={@streams.accountgroups}
-  row_click={fn {_id, accountgroup} -> JS.navigate(~p"/accountgroups/#{accountgroup}") end}
->
-  <:col :let={{_id, accountgroup}} label="Accountgroupname">{accountgroup.accountgroupname}</:col>
-  <:action :let={{_id, accountgroup}}>
-    <div class="sr-only">
-      <.link navigate={~p"/accountgroups/#{accountgroup}"}>Show</.link>
-    </div>
-    <.link patch={~p"/accountgroups/#{accountgroup}/edit"}>Edit</.link>
-  </:action>
-  <:action :let={{id, accountgroup}}>
-    <.link
-      phx-click={JS.push("delete", value: %{id: accountgroup.id}) |> hide("##{id}")}
-      data-confirm="Are you sure?"
+<.card>
+  <%= if @has_accountgroups? do %>
+    <.table
+      id="accountgroups"
+      rows={@streams.accountgroups}
+      row_click={fn {_id, accountgroup} -> JS.navigate(~p"/accountgroups/#{accountgroup}") end}
     >
-      Delete
-    </.link>
-  </:action>
-</.table>
+      <:col :let={{_id, accountgroup}} label="Bezeichnung">{accountgroup.accountgroupname}</:col>
+      <:action :let={{_id, accountgroup}}>
+          <.link navigate={~p"/accountgroups/#{accountgroup}"}>Anzeigen</.link>
+      </:action>
+    </.table>
+  <% else %>
+    <p>
+      Bisher wurde noch keine Kontengruppen erstellt.<br />
+    </p>
+  <% end %>
+</.card>
 
-<.modal
-  :if={@live_action in [:new, :edit]}
-  id="accountgroup-modal"
-  show
-  on_cancel={JS.patch(~p"/accountgroups")}
->
-  <.live_component
-    module={SportywebWeb.AccountgroupLive.FormComponent}
-    id={@accountgroup.id || :new}
-    title={@page_title}
-    action={@live_action}
-    accountgroup={@accountgroup}
-    patch={~p"/accountgroups"}
-  />
-</.modal>
+<.back navigate={~p"/clubs/#{@club}/accounts"}>
+  Zurück zum Kontenplan
+</.back>

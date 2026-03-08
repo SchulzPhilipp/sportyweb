@@ -3,11 +3,13 @@ defmodule Sportyweb.Accounting.Accountclass do
   import Ecto.Changeset
 
   alias Sportyweb.Accounting.Account
+  alias Sportyweb.Organization.Club
 
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
   schema "accountclasses" do
     has_many(:accounts, Account)
+    belongs_to(:club, Club)
 
     field :accountclassnumber, :string
     field :accountclassname, :string
@@ -18,7 +20,8 @@ defmodule Sportyweb.Accounting.Accountclass do
   @doc false
   def changeset(accountclass, attrs) do
     accountclass
-    |> cast(attrs, [:accountclassnumber, :accountclassname])
-    |> validate_required([:accountclassnumber, :accountclassname])
+    |> cast(attrs, [:club_id, :accountclassnumber, :accountclassname])
+    |> validate_required([:club_id, :accountclassnumber, :accountclassname])
+    |> unique_constraint(:club_id, name: :accountclasses_club_id_accountclassnumber_accountclassname_index)
   end
 end

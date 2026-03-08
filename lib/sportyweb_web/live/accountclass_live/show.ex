@@ -4,18 +4,25 @@ defmodule SportywebWeb.AccountclassLive.Show do
   alias Sportyweb.Accounting
 
   @impl true
-  def mount(_params, _session, socket) do
-    {:ok, socket}
+  def mount(%{"id" => id}, _session, socket) do
+    accountclass = Accounting.get_accountclass!(id)
+
+    {:ok, socket
+      |> assign(:club_navigation_current_item, :accountclasses)
+      |> assign(:accountclass, accountclass)
+      |> assign(:club, accountclass.club)
+  }
   end
 
   @impl true
   def handle_params(%{"id" => id}, _, socket) do
+    accountclass = Accounting.get_accountclass!(id)
+
     {:noreply,
      socket
-     |> assign(:page_title, page_title(socket.assigns.live_action))
-     |> assign(:accountclass, Accounting.get_accountclass!(id))}
+     |> assign(:page_title, "Kontenklasse #{accountclass.accountclassnumber}")
+     |> assign(:accountclass, accountclass)
+     |> assign(:club, accountclass.club)
+    }
   end
-
-  defp page_title(:show), do: "Show Accountclass"
-  defp page_title(:edit), do: "Edit Accountclass"
 end

@@ -1,5 +1,5 @@
 defmodule SportywebWeb.AccountLiveTest do
-  use SportywebWeb.ConnCase, async: true
+  use SportywebWeb.ConnCase, async: false
 
   import Phoenix.LiveViewTest
   import Sportyweb.AccountingFixtures
@@ -7,16 +7,19 @@ defmodule SportywebWeb.AccountLiveTest do
   import Sportyweb.OrganizationFixtures
   import Sportyweb.RBAC.RoleFixtures
   import Sportyweb.RBAC.UserRoleFixtures
+  alias Sportyweb.Repo
 
   @create_attrs %{
     accountnumber: "0815",
     accountname: "some accountname",
-    accountbalance: "120.00"
+    accountbalance: "120.00",
+    accounttypecode: "neutral"
   }
   @update_attrs %{
     accountnumber: "0816",
     accountname: "some updated accountname",
-    accountbalance: "456.00"
+    accountbalance: "456.00",
+    accounttypecode: "passiv"
   }
   @invalid_attrs %{
     accountnumber: nil,
@@ -24,7 +27,6 @@ defmodule SportywebWeb.AccountLiveTest do
     accountbalance: nil,
     accountclass_id: nil,
     accountgroup_id: nil,
-    accounttype_id: nil
   }
 
   setup do
@@ -43,104 +45,137 @@ defmodule SportywebWeb.AccountLiveTest do
   describe "Index" do
     setup [:create_account]
 
-    test "lists all accounts", %{conn: conn, user: user, account: account} do
+    test "lists all accounts - default redirect", %{conn: conn, user: user} do
       {:error, _} = live(conn, ~p"/accounts")
 
       conn = conn |> log_in_user(user)
 
-      {:ok, _index_live, html} = live(conn, ~p"/accounts")
-
-      assert html =~ "Listing Accounts"
-      assert html =~ account.accountnumber
+      {:ok, conn} =
+        conn
+        |> live(~p"/accounts")
+        |> follow_redirect(conn, ~p"/clubs")
     end
 
+    test "lists all accounts", %{conn: conn, user: user, account: account} do
+      {:error, _} = live(conn, ~p"/clubs/#{account.club_id}/accounts")
+
+      conn = conn |> log_in_user(user)
+      {:ok, _index_live, html} = live(conn, ~p"/clubs/#{account.club_id}/accounts")
+
+      assert html =~ "Kontenplan"
+      assert html =~ account.accountname
+    end
+end
+
+  describe "New/Edit" do
+    setup [:create_account]
+
     test "saves new account", %{conn: conn, user: user} do
-      {:error, _} = live(conn, ~p"/accounts")
+      club = club_fixture()
+      accountclass = Sportyweb.AccountingFixtures.accountclass_fixture(%{club_id: club.id})
+      accountgroup = Sportyweb.AccountingFixtures.accountgroup_fixture(%{club_id: club.id})
+
+      random_accountnumber = Integer.to_string(:rand.uniform(90_000))
+
+      {:error, _} = live(conn, ~p"/clubs/#{club}/accounts/new")
 
       conn = conn |> log_in_user(user)
 
-      # create references
-      accountclass = Sportyweb.AccountingFixtures.accountclass_fixture()
-      accountgroup = Sportyweb.AccountingFixtures.accountgroup_fixture()
-      accounttype = Sportyweb.AccountingFixtures.accounttype_fixture()
+      {:ok, new_live, html} = live(conn, ~p"/clubs/#{club}/accounts/new")
 
-      random_accountnumber = Integer.to_string(:rand.uniform(90_000))
+      assert html =~ "Konto erstellen"
 
       valid_attrs =
         @create_attrs
         |> Map.put(:accountnumber, random_accountnumber)
         |> Map.put(:accountclass_id, accountclass.id)
         |> Map.put(:accountgroup_id, accountgroup.id)
-        |> Map.put(:accounttype_id, accounttype.id)
+        |> Map.put(:club_id, club.id)
 
-      {:ok, index_live, _html} = live(conn, ~p"/accounts")
-
-      assert index_live |> element("a", "Neues Konto") |> render_click() =~
-               "New Account"
-
-      assert_patch(index_live, ~p"/accounts/new")
-
-      assert index_live
+      assert new_live
              |> form("#account-form", account: @invalid_attrs)
              |> render_change() =~ "can&#39;t be blank"
 
-      assert index_live
-             |> form("#account-form", account: valid_attrs)
-             |> render_submit()
+      {:ok, _, html} =
+        new_live
+        |> form("#account-form", account: valid_attrs)
+        |> render_submit()
+        |> follow_redirect(conn, ~p"/clubs/#{club}/accounts")
 
-      assert_patch(index_live, ~p"/accounts")
-
-      html = render(index_live)
-      assert html =~ "Account created successfully"
-      assert html =~ random_accountnumber
+      assert html =~ "Konto erfolgreich erstellt"
+      assert html =~ "some accountname"
     end
 
-    test "updates account in listing", %{conn: conn, user: user, account: account} do
-      {:error, _} = live(conn, ~p"/accounts")
+    test "cancels save new account", %{conn: conn, user: user} do
+      club = club_fixture()
+
+      conn = conn |> log_in_user(user)
+      {:ok, new_live, _html} = live(conn, ~p"/clubs/#{club}/accounts/new")
+
+      {:ok, _, _html} =
+        new_live
+        |> element("#account-form a", "Abbrechen")
+        |> render_click()
+        |> follow_redirect(conn, ~p"/clubs/#{club}/accounts")
+    end
+
+    test "updates account", %{conn: conn, user: user, account: account} do
+
+      {:error, _} = live(conn, ~p"/accounts/#{account}/edit")
 
       conn = conn |> log_in_user(user)
 
-      # create references
-      accountclass = Sportyweb.AccountingFixtures.accountclass_fixture()
-      accountgroup = Sportyweb.AccountingFixtures.accountgroup_fixture()
-      accounttype = Sportyweb.AccountingFixtures.accounttype_fixture()
+      {:ok, edit_live, html} = live(conn, ~p"/accounts/#{account}/edit")
+
+      assert html =~ "Konto bearbeiten"
 
       valid_attrs =
         @update_attrs
-        |> Map.put(:accountclass_id, accountclass.id)
-        |> Map.put(:accountgroup_id, accountgroup.id)
-        |> Map.put(:accounttype_id, accounttype.id)
+        |> Map.put(:accountclass_id, account.accountclass_id)
+        |> Map.put(:accountgroup_id, account.accountgroup_id)
+        |> Map.put(:club_id, account.club_id)
 
-      {:ok, index_live, _html} = live(conn, ~p"/accounts")
-
-      assert index_live |> element("#accounts-#{account.id} a", "Edit") |> render_click() =~
-               "Edit Account"
-
-      assert_patch(index_live, ~p"/accounts/#{account}/edit")
-
-      assert index_live
+        assert edit_live
              |> form("#account-form", account: @invalid_attrs)
              |> render_change() =~ "can&#39;t be blank"
 
-      assert index_live
-             |> form("#account-form", account: valid_attrs)
-             |> render_submit()
+      {:ok, _edit_live, html} =
+        edit_live
+        |> form("#account-form", account: valid_attrs)
+        |> render_submit()
+        |> follow_redirect(conn, ~p"/accounts/#{account}")
 
-      assert_patch(index_live, ~p"/accounts")
-      html = render(index_live)
-      assert html =~ "Account updated successfully"
-      assert html =~ "0816"
+      assert html =~ "Konto erfolgreich aktualisiert"
+      assert html =~ "some updated accountname"
     end
 
-    test "deletes account in listing", %{conn: conn, user: user, account: account} do
-      {:error, _} = live(conn, ~p"/accounts")
+    test "cancels updates account", %{conn: conn, user: user, account: account} do
+      conn = conn |> log_in_user(user)
+      {:ok, edit_live, _html} = live(conn, ~p"/accounts/#{account}/edit")
+
+      {:ok, _, _html} =
+        edit_live
+        |> element("#account-form a", "Abbrechen")
+        |> render_click()
+        |> follow_redirect(conn, ~p"/accounts/#{account}")
+    end
+
+    test "deletes account", %{conn: conn, user: user, account: account} do
+      {:error, _} = live(conn, ~p"/accounts/#{account}/edit")
 
       conn = conn |> log_in_user(user)
+      {:ok, edit_live, html} = live(conn, ~p"/accounts/#{account}/edit")
+      assert html =~ "some accountname"
 
-      {:ok, index_live, _html} = live(conn, ~p"/accounts")
+      {:ok, _, html} =
+        edit_live
+        |> element("#account-form button", "Löschen")
+        |> render_click()
+        |> follow_redirect(conn, ~p"/clubs/#{account.club_id}/accounts")
 
-      assert index_live |> element("#accounts-#{account.id} a", "Delete") |> render_click()
-      refute has_element?(index_live, "#accounts-#{account.id}")
+      assert html =~ "Konto erfolgreich gelöscht"
+      assert html =~ "Kontenplan"
+      refute html =~ "some accountname"
     end
   end
 
@@ -151,49 +186,10 @@ defmodule SportywebWeb.AccountLiveTest do
       {:error, _} = live(conn, ~p"/accounts/#{account}")
 
       conn = conn |> log_in_user(user)
-
       {:ok, _show_live, html} = live(conn, ~p"/accounts/#{account}")
 
-      assert html =~ "Show Account"
+      assert html =~ "Konto:"
       assert html =~ account.accountnumber
-    end
-
-    test "updates account within modal", %{conn: conn, user: user, account: account} do
-      {:error, _} = live(conn, ~p"/accounts/#{account}")
-
-      conn = conn |> log_in_user(user)
-
-      # create references
-      accountclass = Sportyweb.AccountingFixtures.accountclass_fixture()
-      accountgroup = Sportyweb.AccountingFixtures.accountgroup_fixture()
-      accounttype = Sportyweb.AccountingFixtures.accounttype_fixture()
-
-      valid_attrs =
-        @update_attrs
-        |> Map.put(:accountclass_id, accountclass.id)
-        |> Map.put(:accountgroup_id, accountgroup.id)
-        |> Map.put(:accounttype_id, accounttype.id)
-
-      {:ok, show_live, _html} = live(conn, ~p"/accounts/#{account}")
-
-      assert show_live |> element("a", "Edit") |> render_click() =~
-               "Edit Account"
-
-      assert_patch(show_live, ~p"/accounts/#{account}/show/edit")
-
-      assert show_live
-             |> form("#account-form", account: @invalid_attrs)
-             |> render_change() =~ "can&#39;t be blank"
-
-      assert show_live
-             |> form("#account-form", account: valid_attrs)
-             |> render_submit()
-
-      assert_patch(show_live, ~p"/accounts/#{account}")
-
-      html = render(show_live)
-      assert html =~ "Account updated successfully"
-      assert html =~ "0816"
     end
   end
 end

@@ -1,51 +1,42 @@
 <.header>
-  Kontenplan
+  {@page_title}
   <:actions>
-    <.link patch={~p"/accounts/new"}>
-      <.button>Neues Konto</.button>
+    <.link navigate={~p"/clubs/#{@club}/accountclasses"}>
+      <.button>Kontenklasen</.button>
+    </.link>
+  </:actions>
+  <:actions>
+    <.link navigate={~p"/clubs/#{@club}/accountgroups"}>
+      <.button>Kontengruppen</.button>
+    </.link>
+  </:actions>
+  <:actions>
+    <.link navigate={~p"/clubs/#{@club}/accounts/new"}>
+      <.button>Konto erstellen</.button>
     </.link>
   </:actions>
 </.header>
 
-<.table
-  id="accounts"
-  rows={@streams.accounts}
-  row_click={fn {_id, account} -> JS.navigate(~p"/accounts/#{account}") end}
->
-  <:col :let={{_id, account}} label="Kontonummer">{account.accountnumber}</:col>
-  <:col :let={{_id, account}} label="Kontobezeichnung">{account.accountname}</:col>
-  <:col :let={{_id, account}} label="Saldo">{account.accountbalance}</:col>
-  <:col :let={{_id, account}} label="Kontoklasse">{account.accountclass.accountclassname}</:col>
-  <:col :let={{_id, account}} label="Kontogruppe">{account.accountgroup.accountgroupname}</:col>
-  <:col :let={{_id, account}} label="Kontotyp">{account.accounttype.accounttypename}</:col>
-  <:action :let={{_id, account}}>
-    <div class="sr-only">
-      <.link navigate={~p"/accounts/#{account}"}>Show</.link>
-    </div>
-    <.link patch={~p"/accounts/#{account}/edit"}>Edit</.link>
-  </:action>
-  <:action :let={{id, account}}>
-    <.link
-      phx-click={JS.push("delete", value: %{id: account.id}) |> hide("##{id}")}
-      data-confirm="Sind Sie sich sicher?"
+<.card>
+  <%= if @has_accounts? do %>
+    <.table
+      id="accounts"
+      rows={@streams.accounts}
+      row_click={fn {_id, account} -> JS.navigate(~p"/accounts/#{account}") end}
     >
-      Delete
-    </.link>
-  </:action>
-</.table>
-
-<.modal
-  :if={@live_action in [:new, :edit]}
-  id="account-modal"
-  show
-  on_cancel={JS.patch(~p"/accounts")}
->
-  <.live_component
-    module={SportywebWeb.AccountLive.FormComponent}
-    id={@account.id || :new}
-    title={@page_title}
-    action={@live_action}
-    account={@account}
-    patch={~p"/accounts"}
-  />
-</.modal>
+      <:col :let={{_id, account}} label="Kontonummer">
+        {format_string_field(account.accountnumber)}
+      </:col>
+      <:col :let={{_id, account}} label="Kontobezeichnung">
+        {format_string_field(account.accountname)}
+      </:col>
+      <:action :let={{_id, account}}>
+        <.link navigate={~p"/accounts/#{account}"}>Anzeigen</.link>
+      </:action>
+    </.table>
+  <% else %>
+    <p>
+      Bisher wurde noch keine Konten erstellt.<br />
+    </p>
+  <% end %>
+</.card>

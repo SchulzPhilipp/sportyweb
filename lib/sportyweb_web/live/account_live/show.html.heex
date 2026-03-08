@@ -1,36 +1,35 @@
 <.header>
-  Account {@account.id}
-  <:subtitle>This is a account record from your database.</:subtitle>
+  {@page_title}
   <:actions>
-    <.link patch={~p"/accounts/#{@account}/show/edit"} phx-click={JS.push_focus()}>
-      <.button>Edit account</.button>
+    <.link patch={~p"/accounts/#{@account}/edit"} phx-click={JS.push_focus()}>
+      <.button>Konto bearbeiten</.button>
     </.link>
   </:actions>
 </.header>
 
-<.list>
-  <:item title="Accountnumber">{@account.accountnumber}</:item>
-  <:item title="Accountname">{@account.accountname}</:item>
-  <:item title="Accountbalance">{@account.accountbalance}</:item>
-  <:item title="Accountclass">{@account.accountclass.accountclassname}</:item>
-  <:item title="Accountgroup">{@account.accountgroup.accountgroupname}</:item>
-  <:item title="Accounttype">{@account.accounttype.accounttypename}</:item>
-</.list>
+<.card>
+  <.list>
+    <:item title="Kontonummer">
+      {format_string_field(@account.accountnumber)}
+    </:item>
+    <:item title="Kontoname">
+      {format_string_field(@account.accountname)}
+    </:item>
+    <:item title="Saldo">
+       {display_money(@account.accountbalance)}
+    </:item>
+    <:item title="Kontoklasse">
+      {format_string_field(@account.accountclass.accountclassname)}
+    </:item>
+    <:item title="Kontogruppe">
+      {format_string_field(@account.accountgroup.accountgroupname)}
+    </:item>
+    <:item title="Kontotyp">
+      {Sportyweb.Accounting.Account.accounttypecode_labels()[@account.accounttypecode]}
+    </:item>
+  </.list>
+</.card>
 
-<.back navigate={~p"/accounts"}>Back to accounts</.back>
-
-<.modal
-  :if={@live_action == :edit}
-  id="account-modal"
-  show
-  on_cancel={JS.patch(~p"/accounts/#{@account}")}
->
-  <.live_component
-    module={SportywebWeb.AccountLive.FormComponent}
-    id={@account.id}
-    title={@page_title}
-    action={@live_action}
-    account={@account}
-    patch={~p"/accounts/#{@account}"}
-  />
-</.modal>
+<.back navigate={~p"/clubs/#{@account.club_id}/accounts"}>
+  Zurück zum Kontenplan
+</.back>

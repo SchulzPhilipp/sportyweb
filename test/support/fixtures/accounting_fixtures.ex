@@ -5,6 +5,7 @@ defmodule Sportyweb.AccountingFixtures do
   """
 
   import Sportyweb.LegalFixtures
+  import Sportyweb.OrganizationFixtures
 
   alias Sportyweb.Repo
 
@@ -34,16 +35,18 @@ defmodule Sportyweb.AccountingFixtures do
   def accountclass_fixture(attrs \\ %{}) do
     # Wir nehmen entweder die übergebene Nummer oder einen Standardwert
     number = attrs[:accountclassnumber] || "0"
+    club = club_fixture()
 
     # Zuerst schauen wir nach, ob diese Klasse schon da ist
-    case Sportyweb.Repo.get_by(Sportyweb.Accounting.Accountclass, accountclassnumber: number) do
+    case Sportyweb.Repo.get_by(Sportyweb.Accounting.Accountclass, club_id: club.id, accountclassnumber: number) do
       nil ->
         # Nur wenn sie fehlt, legen wir sie neu an
         {:ok, accountclass} =
           attrs
           |> Enum.into(%{
             accountclassnumber: number,
-            accountclassname: "Default Class"
+            accountclassname: "Default Class",
+            club_id: club.id
           })
           |> Sportyweb.Accounting.create_accountclass()
 
@@ -54,49 +57,6 @@ defmodule Sportyweb.AccountingFixtures do
         existing
     end
 
-    # {:ok, accountclass} =
-    #   attrs
-    #   |> Enum.into(%{
-    #     accountclassname: "some accountclassname",
-    #     accountclassnumber: "0"
-    #   })
-    #   |> Sportyweb.Accounting.create_accountclass()
-
-    # accountclass
-  end
-
-  @doc """
-  Generate a accounttype.
-  """
-  def accounttype_fixture(attrs \\ %{}) do
-    # Wir suchen nach dem Code (oder Namen), um Duplikate zu vermeiden
-    code = attrs[:accounttypecode] || "ABK"
-
-    case Sportyweb.Repo.get_by(Sportyweb.Accounting.Accounttype, accounttypecode: code) do
-      nil ->
-        {:ok, accounttype} =
-          attrs
-          |> Enum.into(%{
-            accounttypecode: code,
-            accounttypename: "some accounttypename-#{System.unique_integer([:positive])}"
-          })
-          |> Sportyweb.Accounting.create_accounttype()
-
-        accounttype
-
-      existing ->
-        existing
-    end
-
-    #   {:ok, accounttype} =
-    #     attrs
-    #     |> Enum.into(%{
-    #       accounttypename: "some accounttypename",
-    #       accounttypecode: "ABK"
-    #     })
-    #     |> Sportyweb.Accounting.create_accounttype()
-
-    #   accounttype
   end
 
   @doc """
@@ -104,18 +64,16 @@ defmodule Sportyweb.AccountingFixtures do
   """
   def accountgroup_fixture(attrs \\ %{}) do
     name = attrs[:accountgroupname] || "Standard Gruppe"
+    club = club_fixture()
 
-    case Repo.get_by(Sportyweb.Accounting.Accountgroup, accountgroupname: name) do
+    case Repo.get_by(Sportyweb.Accounting.Accountgroup, club_id: club.id, accountgroupname: name) do
       nil ->
-        accountclass = attrs[:accountclass] || accountclass_fixture()
-        accounttype = attrs[:accounttype] || accounttype_fixture()
 
         {:ok, accountgroup} =
           attrs
           |> Enum.into(%{
             accountgroupname: name,
-            accountclass_id: accountclass.id,
-            accounttype_id: accounttype.id
+            club_id: club.id
           })
           |> Sportyweb.Accounting.create_accountgroup()
 
@@ -125,34 +83,24 @@ defmodule Sportyweb.AccountingFixtures do
         existing
     end
 
-    #   accountclass = accountclass_fixture()
-    #   accounttype = accounttype_fixture()
-    # {:ok, accountgroup} =
-    #   attrs
-    #   |> Enum.into(%{
-    #     accountclass_id: accountclass.id,
-    #     accounttype_id: accounttype.id,
-    #     accountgroupname: "some accountgroupname"
-    #   })
-    #   |> Sportyweb.Accounting.create_accountgroup()
-
-    # accountgroup
   end
 
   @doc """
   Generate a account.
   """
   def account_fixture(attrs \\ %{}) do
-    accountclass = accountclass_fixture()
-    accountgroup = accountgroup_fixture()
-    accounttype = accounttype_fixture()
+    club = club_fixture()
+    accountclass = accountclass_fixture(%{club_id: club.id})
+    accountgroup = accountgroup_fixture(%{club_id: club.id})
+
 
     {:ok, account} =
       attrs
       |> Enum.into(%{
         accountclass_id: accountclass.id,
         accountgroup_id: accountgroup.id,
-        accounttype_id: accounttype.id,
+        accounttypecode: "neutral",
+        club_id: club.id,
         accountbalance: Money.new(:EUR, 120),
         accountname: "some accountname",
         accountnumber: "0815"
