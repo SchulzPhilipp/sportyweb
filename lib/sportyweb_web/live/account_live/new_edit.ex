@@ -4,7 +4,6 @@ defmodule SportywebWeb.AccountLive.NewEdit do
   alias Sportyweb.Accounting
   alias Sportyweb.Accounting.Account
   alias Sportyweb.Organization
-  alias Sportyweb.Repo
 
   @impl true
   def render(assigns) do

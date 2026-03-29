@@ -188,7 +188,7 @@ defmodule SportywebWeb.ClubNavigationComponent do
           </li>
           <li>
             <.link
-              navigate={~p"/clubs/#{@club}/accounts"}
+              navigate={~p"/clubs/#{@club}/journal"}
               class={[
                 @classes_menu_item,
                 @classes_submenu_item,
@@ -251,7 +251,8 @@ defmodule SportywebWeb.ClubNavigationComponent do
       assigns.club_navigation_current_item == :accounts ||
       assigns.club_navigation_current_item == :accountclasses ||
       assigns.club_navigation_current_item == :accountgroups ||
-      assigns.club_navigation_current_item == :accounttypes
+      assigns.club_navigation_current_item == :accounttypes ||
+      assigns.club_navigation_current_item == :journal
 
     {:ok,
      socket

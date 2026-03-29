@@ -326,4 +326,167 @@ defmodule Sportyweb.AccountingTest do
       assert %Ecto.Changeset{} = Accounting.change_accountgroup(accountgroup)
     end
   end
+
+  describe "entries" do
+    alias Sportyweb.Accounting.Entry
+
+    import Sportyweb.AccountingFixtures
+    import Sportyweb.OrganizationFixtures
+
+    @invalid_attrs %{description: nil, amount: nil}
+
+    test "list_entries/1 returns all entries" do
+      # entry =
+      #   entry_fixture()
+      #   |> Repo.preload([:accounting_transaction, :account])
+
+      # assert Accounting.list_entries(entry.club_id) == [entry]
+
+      entry = entry_fixture()
+      [result] = Accounting.list_entries(entry.club_id)
+
+      assert result.id == entry.id
+      assert result.amount == entry.amount
+      assert result.description == entry.description
+      assert result.accounting_transaction_id == entry.accounting_transaction_id
+    end
+
+    test "get_entry!/1 returns the entry with given id" do
+      entry = entry_fixture()
+      result = Accounting.get_entry!(entry.id)
+
+      assert result.id == entry.id
+      assert result.amount == entry.amount
+      assert result.description == entry.description
+      assert result.accounting_transaction_id == entry.accounting_transaction_id
+    end
+
+    test "create_entry/1 with valid data creates a entry" do
+      club = club_fixture()
+      account = account_fixture()
+      accounting_transaction = accounting_transaction_fixture()
+
+      valid_attrs = %{description: "some description", amount: "120", club_id: club.id, account_id: account.id, accounting_transaction_id: accounting_transaction.id}
+
+      assert {:ok, %Entry{} = entry} = Accounting.create_entry(valid_attrs)
+      assert entry.description == "some description"
+      assert entry.amount == Money.new(:EUR, 120)
+    end
+
+    test "create_entry/1 with invalid data returns error changeset" do
+      assert {:error, %Ecto.Changeset{}} = Accounting.create_entry(@invalid_attrs)
+    end
+
+    test "update_entry/2 with valid data updates the entry" do
+      entry =
+        entry_fixture()
+        |> Repo.preload([:accounting_transaction])
+
+      update_attrs = %{description: "some updated description", amount: "456"}
+
+      assert {:ok, %Entry{} = entry} = Accounting.update_entry(entry, update_attrs)
+      assert entry.description == "some updated description"
+      assert entry.amount == Money.new(:EUR, 456)
+    end
+
+    test "update_entry/2 with invalid data returns error changeset" do
+      entry = entry_fixture()
+        |> Repo.preload([:accounting_transaction])
+
+      assert {:error, %Ecto.Changeset{}} = Accounting.update_entry(entry, @invalid_attrs)
+
+      reloaded = Accounting.get_entry!(entry.id)
+
+      assert entry.id == reloaded.id
+      assert entry.amount == reloaded.amount
+      assert entry.description == reloaded.description
+      assert entry.account_id == reloaded.account_id
+      assert entry.accounting_transaction_id == reloaded.accounting_transaction_id
+    end
+
+    test "delete_entry/1 deletes the entry" do
+      entry =
+        entry_fixture()
+        |> Repo.preload([:accounting_transaction])
+
+      if entry.accounting_transaction.status == :draft do
+        Repo.delete(entry)
+      else
+        {:error, :transaction_not_draft}
+      end
+    end
+
+  end
+
+  describe "accountingtransactions" do
+    alias Sportyweb.Accounting.AccountingTransaction
+
+    import Sportyweb.AccountingFixtures
+    import Sportyweb.OrganizationFixtures
+
+    @invalid_attrs %{status: nil, description: nil, reference: nil, posted_at: nil}
+
+    test "list_accounting_transactions/1 returns all accountingtransactions" do
+      accounting_transaction =
+        accounting_transaction_fixture()
+        |> Repo.preload([:entries])
+
+      assert Accounting.list_accounting_transactions(accounting_transaction.club_id) == [accounting_transaction]
+    end
+
+    test "get_accounting_transaction!/1 returns the accounting_transaction with given id" do
+      accounting_transaction =
+        accounting_transaction_fixture()
+        |> Repo.preload([:club, :entries])
+      assert Accounting.get_accounting_transaction!(accounting_transaction.id) == accounting_transaction
+    end
+
+    test "create_accounting_transaction/1 with valid data creates a accounting_transaction" do
+      club = club_fixture()
+
+      valid_attrs = %{club_id: club.id, status: "draft", description: "some description", reference: "some reference"}
+
+      assert {:ok, %AccountingTransaction{} = accounting_transaction} = Accounting.create_accounting_transaction(valid_attrs)
+      assert accounting_transaction.status == :draft
+      assert accounting_transaction.description == "some description"
+      assert accounting_transaction.reference == "some reference"
+    end
+
+    test "create_accounting_transaction/1 with invalid data returns error changeset" do
+
+
+      assert {:error, %Ecto.Changeset{}} = Accounting.create_accounting_transaction(@invalid_attrs)
+    end
+
+    test "update_accounting_transaction/2 with valid data updates the accounting_transaction" do
+      accounting_transaction =
+        accounting_transaction_fixture()
+        |> Repo.preload([:club, :entries])
+      update_attrs = %{status: "draft", description: "some updated description", reference: "some updated reference"}
+
+      assert {:ok, %AccountingTransaction{} = accounting_transaction} = Accounting.update_accounting_transaction(accounting_transaction, update_attrs)
+      assert accounting_transaction.status == :draft
+      assert accounting_transaction.description == "some updated description"
+      assert accounting_transaction.reference == "some updated reference"
+    end
+
+    test "update_accounting_transaction/2 with invalid data returns error changeset" do
+      accounting_transaction =
+        accounting_transaction_fixture()
+        |> Repo.preload([:club, :entries])
+
+      assert {:error, %Ecto.Changeset{}} = Accounting.update_accounting_transaction(accounting_transaction, @invalid_attrs)
+      assert accounting_transaction == Accounting.get_accounting_transaction!(accounting_transaction.id)
+    end
+
+    test "delete_accounting_transaction/1 deletes the accounting_transaction" do
+      accounting_transaction = accounting_transaction_fixture()
+      assert {:ok, %AccountingTransaction{}} = Accounting.delete_accounting_transaction(accounting_transaction)
+    end
+
+    test "change_accounting_transaction/1 returns a accounting_transaction changeset" do
+      accounting_transaction = accounting_transaction_fixture()
+      assert %Ecto.Changeset{} = Accounting.change_accounting_transaction(accounting_transaction)
+    end
+  end
 end

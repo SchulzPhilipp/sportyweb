@@ -1,0 +1,64 @@
+<.header>
+  {@page_title}
+  <:actions>
+    <.link patch={~p"/clubs/#{@club.id}/journal/new"}>
+      <.button>Buchung erstellen</.button>
+    </.link>
+  </:actions>
+</.header>
+
+
+<.card>
+  <%= if @has_transactions? do %>
+      <%!-- Statusfilter --%>
+<div class="mb-4">
+  <form phx-change="filter">
+    <.input
+      type="select"
+      name="filter"
+      value={@filter}
+      label="Status filtern"
+      options={[
+        {"Alle", "all"},
+        {"Entwurf", "draft"},
+        {"Zur Prüfung", "pending"},
+        {"Gebucht", "posted"},
+        {"Storniert", "voided"}
+      ]} />
+  </form>
+</div>
+    <.table
+      id="accounting_transactions"
+      rows={@streams.accounting_transactions}
+      row_click={fn {_id, accounting_transaction} -> JS.navigate(~p"/journal/#{accounting_transaction}") end}
+    >
+      <:col :let={{_id, accounting_transaction}} label="Buchungsnummer">
+        {format_string_field(accounting_transaction.voucher_number)}
+      </:col>
+      <:col :let={{_id, accounting_transaction}} label="Beschreibung">
+        {format_string_field(accounting_transaction.description)}
+      </:col>
+      <:col :let={{_id, accounting_transaction}} label="Referenz">
+        {format_string_field(accounting_transaction.reference)}
+      </:col>
+      <:col :let={{_id, accounting_transaction}} label="Status">
+        {status_label(accounting_transaction.status)}
+      </:col>
+      <:col :let={{_id, accounting_transaction}} label="Sphäre">
+        {sphere_label(accounting_transaction.sphere)}
+      </:col>
+      <:col :let={{_id, accounting_transaction}} label="Buchungsdatum">
+        {if accounting_transaction.posted_at,
+        do: Calendar.strftime(accounting_transaction.posted_at, "%d.%m.%Y"),
+        else: "-"}
+      </:col>
+      <:action :let={{_id, accounting_transaction}}>
+        <.link navigate={~p"/journal/#{accounting_transaction}"}>Anzeigen</.link>
+      </:action>
+    </.table>
+  <% else %>
+    <p>
+      Bisher wurde noch keine Buchungen erstellt.<br />
+    </p>
+  <% end %>
+</.card>

@@ -63,7 +63,7 @@ defmodule SportywebWeb.AccountLive.FormComponent do
                   prompt="Bitte wählen..."
                 />
               </div>
-              <.input field={@form[:club_id]} type="hidden" value={@club_id} />
+              <input type="hidden" name={@form[:club_id].name} value={@club_id} />
             </.input_grid>
           </.input_grids>
           <:actions>
@@ -156,7 +156,7 @@ end
     #IO.inspect(account_params)
     case Accounting.create_account(account_params) do
       {:ok, account} ->
-        account = Sportyweb.Repo.preload(account, [:accountclass, :accountgroup])
+        Sportyweb.Repo.preload(account, [:accountclass, :accountgroup])
 
         {:noreply,
          socket

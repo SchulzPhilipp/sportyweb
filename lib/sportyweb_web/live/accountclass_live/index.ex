@@ -2,7 +2,6 @@ defmodule SportywebWeb.AccountclassLive.Index do
   use SportywebWeb, :live_view
 
   alias Sportyweb.Accounting
-  alias Sportyweb.Accounting.Accountclass
   alias Sportyweb.Organization
 
   @impl true

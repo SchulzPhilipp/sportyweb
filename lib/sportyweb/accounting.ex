@@ -688,7 +688,7 @@ defmodule Sportyweb.Accounting do
   ## Examples
 
       iex> get_accountgroup!(123, [:club])
-      %Department{}
+      %Accountgroup{}
 
       iex> get_accountgroup!(456, [:club])
       ** (Ecto.NoResultsError)
@@ -764,5 +764,495 @@ defmodule Sportyweb.Accounting do
   def change_accountgroup(%Accountgroup{} = accountgroup, attrs \\ %{}) do
     Accountgroup.changeset(accountgroup, attrs)
   end
+
+
+  alias Sportyweb.Accounting.Entry
+
+  @doc """
+  Returns the list of entries for a given club.
+
+  ## Examples
+
+      iex> list_entries(club_id)
+      [%Entry{}, ...]
+
+  """
+  def list_entries(club_id, preloads \\ [:account]) do
+    Entry
+    |> where([e], e.club_id == ^club_id)
+    |> order_by([e], asc: e.amount) # Sortiert auf DB-Ebene
+    |> Repo.all()              # Holt die Liste aus der DB
+    |> Repo.preload(preloads) # Lädt die gewünschten Assoziationen nach
+  end
+
+  @doc """
+  Gets a single entry by ID.
+
+  Raises `Ecto.NoResultsError` if the entry does not exist.
+
+  ## Examples
+
+      iex> get_entry!(123)
+      %Entry{}
+
+      iex> get_entry!(456)
+      ** (Ecto.NoResultsError)
+
+  """
+  def get_entry!(id, preloads \\ [:club, :account]) do
+    Entry
+    |> Repo.get!(id)
+    |> Repo.preload(preloads)
+  end
+
+  @doc """
+  Creates an entry.
+
+  ## Examples
+
+      iex> create_entry(%{field: value})
+      {:ok, %Entry{}}
+
+      iex> create_entry(%{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def create_entry(attrs \\ %{}) do
+    %Entry{}
+    |> Entry.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  @doc """
+  Updates an entry of a transaction.
+
+  Entries are immutable once the associated transaction has been posted or voided.
+  Only entries of transactions with status `:draft` or `:pending` can be updated.
+
+  Returns `{:error, :immutable}` if the transaction has already been posted or voided.
+
+  ## Examples
+
+      iex> update_entry(entry, %{amount: Money.new(100, :EUR)})
+      {:ok, %Entry{}}
+
+      iex> update_entry(entry, %{amount: Money.new(100, :EUR)})
+      {:error, %Ecto.Changeset{}}
+
+      iex> update_entry(posted_entry, %{amount: Money.new(100, :EUR)})
+      {:error, :immutable}
+
+  """
+  def update_entry(%Entry{} = entry, attrs) do
+    case entry.accounting_transaction.status do
+      status when status in [:posted, :voided] ->
+        {:error, :immutable}
+      _ ->
+        entry
+        |> Entry.changeset(attrs)
+        |> Repo.update()
+    end
+  end
+
+  @doc """
+  Deletes an entry of a transaction.
+
+  Entries are immutable once the associated transaction has been posted or voided.
+  Only entries of transactions with status `:draft` can be deleted.
+
+  Returns `{:error, :immutable}` if the transaction is in status
+  `:pending`, `:posted`, `:voided` or `:deleted`.
+
+  ## Examples
+
+      iex> delete_entry(entry)
+      {:ok, %Entry{}}
+
+      iex> delete_entry(entry)
+      {:error, %Ecto.Changeset{}}
+
+      iex> delete_entry(posted_entry)
+      {:error, :immutable}
+
+  """
+  def delete_entry(%Entry{} = entry) do
+    case entry.accounting_transaction.status do
+      status when status in [:pending, :posted, :voided, :deleted] ->
+        {:error, :immutable}
+      _ ->
+        Repo.delete(entry)
+    end
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for tracking description changes of an entry.
+
+  Since entries are immutable by design, only the description field can be
+  changed after creation. Use this changeset to track description changes
+  in LiveView forms.
+
+  ## Examples
+
+      iex> change_entry(entry)
+      %Ecto.Changeset{data: %Entry{}}
+
+      iex> change_entry(entry, %{description: "New description"})
+      %Ecto.Changeset{data: %Entry{}}
+
+  """
+  def change_entry(%Entry{} = entry, attrs \\ %{}) do
+    Entry.update_description_changeset(entry, attrs)
+  end
+
+
+  alias Sportyweb.Accounting.AccountingTransaction
+
+  @doc """
+  Returns the list of accounting transactions for a given club.
+
+  Transactions are ordered by insertion date in ascending order.
+  Soft-deleted transactions (status `:deleted`) are included by default.
+  Use `list_accounting_transactions/2` with a custom query to exclude them.
+
+  ## Examples
+
+      iex> list_accounting_transactions(club_id)
+      [%AccountingTransaction{}, ...]
+
+  """
+  def list_accounting_transactions(club_id, preloads \\ [:entries]) do
+    AccountingTransaction
+    |> where([at], at.club_id == ^club_id)
+    |> order_by([at], asc: at.inserted_at)
+    |> Repo.all()
+    |> Repo.preload(preloads)
+  end
+
+  @doc """
+  Gets a single accounting transaction by ID.
+
+  Raises `Ecto.NoResultsError` if the accounting transaction does not exist.
+
+  ## Examples
+
+      iex> get_accounting_transaction!(123)
+      %AccountingTransaction{}
+
+      iex> get_accounting_transaction!(456)
+      ** (Ecto.NoResultsError)
+
+  """
+  def get_accounting_transaction!(id, preloads \\ [:club, :entries]) do
+    AccountingTransaction
+    |> Repo.get!(id)
+    |> Repo.preload(preloads)
+  end
+
+  @doc """
+  Creates an accounting transaction.
+
+  Automatically generates a sequential voucher number scoped to the club
+  and the current year (e.g. "2026-0001").
+
+  ## Examples
+
+      iex> create_accounting_transaction(%{field: value})
+      {:ok, %AccountingTransaction{}}
+
+      iex> create_accounting_transaction(%{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def create_accounting_transaction(attrs \\ %{}) do
+    club_id = attrs[:club_id] || attrs["club_id"]
+    # voucher_number nur generieren wenn club_id vorhanden
+    voucher_number = if is_nil(club_id), do: nil, else: generate_voucher_number(club_id)
+
+    # Key-Typ der ursprünglichen Map beibehalten
+    voucher_key = if is_map_key(attrs, "club_id"), do: "voucher_number", else: :voucher_number
+
+    %AccountingTransaction{}
+    |> AccountingTransaction.changeset(Map.put(attrs, voucher_key, voucher_number))
+    |> Repo.insert()
+  end
+
+  defp generate_voucher_number(club_id) do
+    year = Date.utc_today().year
+
+    last_number =
+    from(t in AccountingTransaction,
+      where: t.club_id == ^club_id,
+      where: like(t.voucher_number, ^"#{year}-%"),
+      select: t.voucher_number,
+      order_by: [desc: t.inserted_at]
+    )
+    |> Repo.all()
+    |> Enum.map(fn num ->
+        num
+        |> String.split("-")
+        |> List.last()
+        |> String.to_integer()
+      end)
+    |> Enum.max(fn -> 0 end)
+
+    next_number = last_number + 1
+
+    "#{year}-#{String.pad_leading(to_string(next_number), 4, "0")}"
+  end
+
+  @doc """
+  Updates an accounting transaction.
+
+  Only transactions with status `:draft` or `:pending` can be fully updated.
+  Returns `{:error, :immutable}` if the transaction is in any other status.
+
+  ## Examples
+
+      iex> update_accounting_transaction(accounting_transaction, %{field: new_value})
+      {:ok, %AccountingTransaction{}}
+
+      iex> update_accounting_transaction(accounting_transaction, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_accounting_transaction(%AccountingTransaction{status: status} = accounting_transaction, attrs)
+      when status in [:draft, :pending] do
+    accounting_transaction
+      |> AccountingTransaction.changeset(attrs)
+      |> Repo.update()
+  end
+
+  def update_accounting_transaction(%AccountingTransaction{}), do: {:error, :immutable}
+
+  @doc """
+  Soft-deletes an accounting transaction with status `:draft`.
+
+  To preserve voucher number continuity, the transaction record is not physically
+  deleted. Instead, all associated entries are removed from the database and the
+  transaction is marked with status `:deleted`, a `deleted_at` timestamp, and
+  the description "Entwurf gelöscht".
+
+  Returns `{:error, :immutable}` if the transaction is not in `:draft` status.
+
+  ## Examples
+
+      iex> delete_accounting_transaction(draft_accounting_transaction)
+      {:ok, %AccountingTransaction{status: :deleted}}
+
+      iex> delete_accounting_transaction(posted_accounting_transaction)
+      {:error, :immutable}
+
+  """
+  def delete_accounting_transaction(%AccountingTransaction{status: status} = accounting_transaction)
+      when status in [:draft] do
+    #Repo.delete(accounting_transaction)
+    accounting_transaction = Repo.preload(accounting_transaction, :entries)
+
+      Repo.transaction(fn ->
+        # Entries explizit aus der Datenbank löschen
+        from(e in Entry,
+          where: e.accounting_transaction_id == ^accounting_transaction.id
+        )
+        |> Repo.delete_all()
+
+        # Transaktion soft-deleten
+        accounting_transaction
+        |> Ecto.Changeset.change(%{
+          deleted_at: DateTime.utc_now() |> DateTime.truncate(:second),
+          description: "Entwurf gelöscht",
+          status: :deleted
+        })
+        |> Repo.update!()
+    end)
+
+  end
+
+  def delete_accounting_transaction(%AccountingTransaction{}), do: {:error, :immutable}
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for tracking accounting transaction changes.
+
+  ## Examples
+
+      iex> change_accounting_transaction(accounting_transaction)
+      %Ecto.Changeset{data: %AccountingTransaction{}}
+
+  """
+  def change_accounting_transaction(%AccountingTransaction{} = accounting_transaction, attrs \\ %{}) do
+    AccountingTransaction.changeset(accounting_transaction, attrs)
+  end
+
+
+  @doc """
+  Transitions an accounting transaction from `:draft` to `:pending`.
+
+  A transaction in `:pending` status is considered complete and awaits
+  approval for posting. Only transactions with status `:draft` can be submitted.
+
+  Returns `{:error, :invalid_transition}` if the transaction is not in `:draft` status.
+
+  ## Examples
+
+      iex> submit_accounting_transaction(draft_accounting_transaction)
+      {:ok, %AccountingTransaction{status: :pending}}
+
+      iex> submit_accounting_transaction(posted_accounting_transaction)
+      {:error, :invalid_transition}
+
+  """
+  def submit_accounting_transaction(%AccountingTransaction{status: :draft} = accounting_transaction) do
+    accounting_transaction = Repo.preload(accounting_transaction, :entries)
+
+    accounting_transaction
+    |> AccountingTransaction.pending_changeset()
+    |> Repo.update()
+  end
+
+  def submit_accounting_transaction(%AccountingTransaction{}), do: {:error, :invalid_transition}
+
+  @doc """
+  Reverts an accounting transaction from `:pending` back to `:draft`.
+
+  A transaction in `:pending` status can be reverted to `:draft` if
+  corrections are required before resubmission. Only transactions with
+  status `:pending` can be reverted.
+
+  Returns `{:error, :invalid_transition}` if the transaction is not in `:pending` status.
+
+  ## Examples
+
+      iex> revert_to_draft_accounting_transaction(pending_accounting_transaction)
+      {:ok, %AccountingTransaction{status: :draft}}
+
+      iex> revert_to_draft_accounting_transaction(posted_accounting_transaction)
+      {:error, :invalid_transition}
+
+  """
+  def revert_to_draft_accounting_transaction(%AccountingTransaction{status: :pending} = accounting_transaction) do
+    accounting_transaction
+    |> AccountingTransaction.draft_changeset()
+    |> Repo.update()
+  end
+
+  def revert_to_draft_accounting_transaction(%AccountingTransaction{}), do: {:error, :invalid_transition}
+
+  @doc """
+  Transitions an accounting transaction from `:pending` to `:posted`.
+
+  A posted transaction is immutable and its entries are reflected in the
+  account balances. All associated entries must be balanced — the sum of
+  all entry amounts must equal zero — before the transaction can be posted.
+
+  Only transactions with status `:pending` can be posted.
+
+  Returns `{:error, :invalid_transition}` if the transaction is not in `:pending` status.
+  Returns `{:error, %Ecto.Changeset{}}` if the entries are not balanced.
+
+  ## Examples
+
+      iex> post_accounting_transaction(pending_accounting_transaction)
+      {:ok, %AccountingTransaction{status: :posted}}
+
+      iex> post_accounting_transaction(draft_accounting_transaction)
+      {:error, :invalid_transition}
+
+      iex> post_accounting_transaction(unbalanced_accounting_transaction)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def post_accounting_transaction(%AccountingTransaction{status: :pending} = accounting_transaction) do
+    accounting_transaction = Repo.preload(accounting_transaction, :entries)
+
+    accounting_transaction
+    |> AccountingTransaction.post_changeset()
+    |> Repo.update()
+  end
+
+  def post_accounting_transaction(%AccountingTransaction{}), do: {:error, :invalid_transition}
+
+  @doc """
+  Transitions an accounting transaction from `:posted` to `:voided` and
+  creates a corresponding reversal transaction.
+
+  Voiding a posted transaction creates an offsetting reversal entry with
+  negated amounts, preserving the audit trail. The original transaction is
+  marked as `:voided` and the reversal transaction is immediately posted.
+
+  Only transactions with status `:posted` can be voided.
+  Both operations are executed within a single database transaction to
+  ensure consistency.
+
+  Returns `{:error, :invalid_transition}` if the transaction is not in `:posted` status.
+  Returns `{:error, changeset}` if the reversal transaction cannot be created.
+
+  ## Examples
+
+      iex> void_accounting_transaction(posted_accounting_transaction)
+      {:ok, %AccountingTransaction{status: :voided}}
+
+      iex> void_accounting_transaction(draft_accounting_transaction)
+      {:error, :invalid_transition}
+
+  """
+  def void_accounting_transaction(%AccountingTransaction{status: :posted} = accounting_transaction) do
+
+    Repo.transaction(fn ->
+    case accounting_transaction
+         |> AccountingTransaction.void_changeset()
+         |> Repo.update() do
+      {:ok, voided_transaction} ->
+        reversal_attrs = %{
+          "club_id" => accounting_transaction.club_id,
+          "description" => "Storno: #{accounting_transaction.description}",
+          "reference" => accounting_transaction.voucher_number,
+          "status" => "posted",
+          "posted_at" => DateTime.utc_now() |> DateTime.truncate(:second),
+          "entries" => build_reversal_entries(accounting_transaction)
+        }
+
+        case create_reversal_transaction(reversal_attrs) do
+          {:ok, _reversal} ->
+            {:ok, voided_transaction}
+          {:error, changeset} ->
+            Repo.rollback(changeset)
+        end
+
+      {:error, changeset} ->
+        Repo.rollback(changeset)
+    end
+  end)
+
+  end
+
+  def void_accounting_transaction(%AccountingTransaction{}), do: {:error, :invalid_transition}
+
+  defp build_reversal_entries(accounting_transaction) do
+    accounting_transaction.entries
+    |> Enum.with_index()
+    |> Enum.map(fn {entry, index} ->
+      {
+        "#{index}",
+        %{
+          "account_id" => entry.account_id,
+          "club_id" => entry.club_id,
+          "amount" => Money.negate!(entry.amount),
+          "description" => entry.description
+        }
+      }
+    end)
+    |> Enum.into(%{})
+  end
+
+  defp create_reversal_transaction(attrs) do
+    club_id = Map.get(attrs, "club_id")
+    voucher_number = generate_voucher_number(club_id)
+
+    _attrs_with_voucher = Map.put(attrs, "voucher_number", voucher_number)
+
+    %AccountingTransaction{}
+    |> AccountingTransaction.reversal_changeset(Map.put(attrs, "voucher_number", voucher_number))
+    |> Repo.insert()
+  end
+
 
 end

@@ -1,12 +1,10 @@
 defmodule Sportyweb.Accounting.Account do
   use Ecto.Schema
   import Ecto.Changeset
-  import SportywebWeb.CommonValidations
 
   alias Sportyweb.Organization.Club
   alias Sportyweb.Accounting.Accountclass
   alias Sportyweb.Accounting.Accountgroup
-  alias Sportyweb.Accounting.Accounttype
 
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id

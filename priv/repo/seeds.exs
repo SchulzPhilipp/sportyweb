@@ -38,6 +38,8 @@ alias Sportyweb.Accounting.Accountclass
 alias Sportyweb.Accounting.Accountgroup
 alias Sportyweb.Accounting.Accounttype
 alias Sportyweb.Accounting.Account
+alias Sportyweb.Accounting.Entry
+alias Sportyweb.Accounting.AccountingTransaction
 
 alias Sportyweb.RBAC.Role.ApplicationRole
 alias Sportyweb.RBAC.Role.ClubRole
@@ -3331,3 +3333,364 @@ Sportyweb.SKRHelper.create_skr42(club_2, accounting_data)
 Sportyweb.SKRHelper.create_skr42(club_3, accounting_data)
 Sportyweb.SKRHelper.create_skr42(club_4, accounting_data)
 Sportyweb.SKRHelper.create_skr42(testclub, accounting_data)
+
+
+#############################################################
+# Adds Accounting_Transactions as examples
+#
+
+bank = Repo.get_by!(Sportyweb.Accounting.Account, accountnumber: "18000", club_id: club_1.id)
+mitgliedsbeitraege = Repo.get_by!(Sportyweb.Accounting.Account, accountnumber: "40000", club_id: club_1.id)
+übungsleiterpauschalen = Repo.get_by!(Sportyweb.Accounting.Account, accountnumber: "60040", club_id: club_1.id)
+spenden = Repo.get_by!(Sportyweb.Accounting.Account, accountnumber: "40400", club_id: club_1.id)
+zuschuesse = Repo.get_by!(Sportyweb.Accounting.Account, accountnumber: "49750", club_id: club_1.id)
+sportveranstaltungen = Repo.get_by!(Sportyweb.Accounting.Account, accountnumber: "43050", club_id: club_1.id)
+raumkosten = Repo.get_by!(Sportyweb.Accounting.Account, accountnumber: "63090", club_id: club_1.id)
+sportmaterial = Repo.get_by!(Sportyweb.Accounting.Account, accountnumber: "68450", club_id: club_1.id)
+
+#
+# Schritt 1: Buchungsdaten erfassen:
+
+accounting_transaction_data = [
+  # ============================================================
+  # Mitgliedsbeiträge
+  # ============================================================
+  {
+    %{
+      description: "Mitgliedsbeitrag Januar 2026",
+      reference: "MB-2026-001",
+      status: :posted,
+      voucher_number: "2026-0001",
+      posted_at: ~U[2026-03-01 10:00:00Z]
+    },
+    [
+      %{account_id: bank.id, amount: "2400", description: "Eingang Mitgliedsbeitrag"},
+      %{account_id: mitgliedsbeitraege.id, amount: "-2400", description: "Mitgliedsbeitrag Ertrag"}
+    ]
+  },
+    {
+    %{
+      description: "Mitgliedsbeitrag Februar 2026",
+      reference: "MB-2026-002",
+      status: :posted,
+      voucher_number: "2026-0002",
+      posted_at: ~U[2026-03-01 10:00:00Z]
+    },
+    [
+      %{account_id: bank.id, amount: "2400", description: "Eingang Mitgliedsbeitrag"},
+      %{account_id: mitgliedsbeitraege.id, amount: "-2400", description: "Mitgliedsbeitrag Ertrag"}
+    ]
+  },
+
+  {
+    %{
+      description: "Mitgliedsbeitrag März 2026",
+      reference: "MB-2026-003",
+      status: :posted,
+      voucher_number: "2026-0003",
+      posted_at: ~U[2026-03-01 10:00:00Z]
+    },
+    [
+      %{account_id: bank.id, amount: "2400", description: "Eingang Mitgliedsbeitrag"},
+      %{account_id: mitgliedsbeitraege.id, amount: "-2400", description: "Mitgliedsbeitrag Ertrag"}
+    ]
+  },
+
+  # ============================================================
+  # Spenden
+  # ============================================================
+
+  {
+    %{
+      description: "Spende Stadtwerke GmbH",
+      reference: "SP-2026-001",
+      status: :posted,
+      sphere: :ideal,
+      voucher_number: "2026-0004",
+      posted_at: ~U[2026-01-15 09:00:00Z]
+    },
+    [
+      %{account_id: bank.id, amount: "1000", description: "Spendeneingang Stadtwerke"},
+      %{account_id: spenden.id, amount: "-1000", description: "Spendenertrag"}
+    ]
+  },
+
+  {
+    %{
+      description: "Spende Privatperson Müller",
+      reference: "SP-2026-002",
+      status: :posted,
+      sphere: :ideal,
+      voucher_number: "2026-0005",
+      posted_at: ~U[2026-02-10 11:00:00Z]
+    },
+    [
+      %{account_id: bank.id, amount: "250", description: "Spendeneingang Müller"},
+      %{account_id: spenden.id, amount: "-250", description: "Spendenertrag"}
+    ]
+  },
+
+  # ============================================================
+  # Zuschüsse
+  # ============================================================
+  {
+    %{
+      description: "Zuschuss Landessportbund 2026",
+      reference: "ZU-2026-001",
+      status: :posted,
+      sphere: :ideal,
+      voucher_number: "2026-0006",
+      posted_at: ~U[2026-01-20 14:00:00Z]
+    },
+    [
+      %{account_id: bank.id, amount: "5000",  description: "Eingang Förderung LSB"},
+      %{account_id: zuschuesse.id, amount: "-5000", description: "Zuschussertrag LSB"}
+    ]
+  },
+
+  {
+    %{
+      description: "Kommunaler Sportförderungszuschuss",
+      reference: "ZU-2026-002",
+      status: :pending,
+      sphere: :ideal,
+      voucher_number: "2026-0007"
+    },
+    [
+      %{account_id: bank.id, amount: "2500", description: "Eingang Stadtförderung"},
+      %{account_id: zuschuesse.id, amount: "-2500", description: "Kommunaler Zuschuss"}
+    ]
+  },
+
+  # ============================================================
+  # Sportveranstaltungen
+  # ============================================================
+  {
+    %{
+      description: "Einnahmen Heimspiel 08.02.2026",
+      reference: "VE-2026-001",
+      status: :posted,
+      sphere: :purpose_related,
+      voucher_number: "2026-0008",
+      posted_at: ~U[2026-02-08 20:00:00Z]
+    },
+    [
+      %{account_id: bank.id, amount: "480", description: "Eintrittsgelder Heimspiel"},
+      %{account_id: sportveranstaltungen.id, amount: "-480", description: "Veranstaltungsertrag"}
+    ]
+  },
+
+  {
+    %{
+      description: "Einnahmen Turnier 15.03.2026",
+      reference: "VE-2026-002",
+      status: :posted,
+      sphere: :purpose_related,
+      voucher_number: "2026-0009",
+      posted_at: ~U[2026-03-15 18:00:00Z]
+    },
+    [
+      %{account_id: bank.id, amount: "1200", description: "Startgelder und Eintritt"},
+      %{account_id: sportveranstaltungen.id, amount: "-1200", description: "Turnierertrag"}
+    ]
+  },
+
+  # ============================================================
+  # Übungsleiterpauschalen
+  # ============================================================
+  {
+    %{
+      description: "Übungsleiterpauschalen Januar 2026",
+      reference: "AW-2026-001",
+      status: :posted,
+      sphere: :ideal,
+      voucher_number: "2026-0010",
+      posted_at: ~U[2026-01-31 16:00:00Z]
+    },
+    [
+      %{account_id: übungsleiterpauschalen.id, amount: "840", description: "Pauschalen 7 Übungsleiter"},
+      %{account_id: bank.id, amount: "-840", description: "Bankabgang Übungsleiter"}
+    ]
+  },
+
+  {
+    %{
+      description: "Übungsleiterpauschalen Februar 2026",
+      reference: "AW-2026-002",
+      status: :posted,
+      sphere: :ideal,
+      voucher_number: "2026-0011",
+      posted_at: ~U[2026-02-28 16:00:00Z]
+    },
+    [
+      %{account_id: übungsleiterpauschalen.id, amount: "840",  description: "Pauschalen 7 Übungsleiter"},
+      %{account_id: bank.id, amount: "-840", description: "Bankabgang Übungsleiter"}
+    ]
+  },
+
+  {
+    %{
+      description: "Übungsleiterpauschalen März 2026",
+      reference: "AW-2026-003",
+      status: :pending,
+      sphere: :ideal,
+      voucher_number: "2026-0012"
+    },
+    [
+      %{account_id: übungsleiterpauschalen.id, amount: "840",  description: "Pauschalen 7 Übungsleiter"},
+      %{account_id: bank.id, amount: "-840", description: "Bankabgang Übungsleiter"}
+    ]
+  },
+
+  # ============================================================
+  # Raumkosten
+  # ============================================================
+  {
+    %{
+      description: "Hallenmiete Januar 2026",
+      reference: "RK-2026-001",
+      status: :posted,
+      sphere: :ideal,
+      voucher_number: "2026-0013",
+      posted_at: ~U[2026-01-31 12:00:00Z]
+    },
+    [
+      %{account_id: raumkosten.id, amount: "950",  description: "Hallenmiete Januar"},
+      %{account_id: bank.id, amount: "-950", description: "Bankabgang Miete"}
+    ]
+  },
+
+  {
+    %{
+      description: "Hallenmiete Februar 2026",
+      reference: "RK-2026-002",
+      status: :posted,
+      sphere: :ideal,
+      voucher_number: "2026-0014",
+      posted_at: ~U[2026-02-28 12:00:00Z]
+    },
+    [
+      %{account_id: raumkosten.id, amount: "950", description: "Hallenmiete Februar"},
+      %{account_id: bank.id, amount: "-950", description: "Bankabgang Miete"}
+    ]
+  },
+
+  {
+    %{
+      description: "Hallenmiete März 2026",
+      reference: "RK-2026-003",
+      status: :pending,
+      sphere: :ideal,
+      voucher_number: "2026-0015"
+    },
+    [
+      %{account_id: raumkosten.id, amount: "950", description: "Hallenmiete März"},
+      %{account_id: bank.id, amount: "-950", description: "Bankabgang Miete"}
+    ]
+  },
+
+  {
+    %{
+      description: "Hallenmiete Turnier 15.03.2026",
+      reference: "VE-2026-002",
+      status: :pending,
+      sphere: :purpose_related,
+      voucher_number: "2026-0019"
+    },
+    [
+      %{account_id: raumkosten.id, amount: "150", description: "Hallenmiete März"},
+      %{account_id: bank.id, amount: "-150", description: "Bankabgang Miete"}
+    ]
+  },
+
+  # ============================================================
+  # Sportmaterial
+  # ============================================================
+  {
+    %{
+      description: "Trainingsmaterial Herbst 2025",
+      reference: "SM-2025-001",
+      status: :posted,
+      sphere: :ideal,
+      voucher_number: "2026-0016",
+      posted_at: ~U[2026-01-10 09:00:00Z]
+    },
+    [
+      %{account_id: sportmaterial.id, amount: "620", description: "Bälle und Trainingsequipment"},
+      %{account_id: bank.id, amount: "-620", description: "Bankabgang Material"}
+    ]
+  },
+
+  {
+    %{
+      description: "Trikots Saison 2026",
+      reference: "SM-2026-001",
+      status: :posted,
+      sphere: :ideal,
+      voucher_number: "2026-0017",
+      posted_at: ~U[2026-02-20 10:00:00Z]
+    },
+    [
+      %{account_id: sportmaterial.id, amount: "1400", description: "Trikotsatz 1. Mannschaft"},
+      %{account_id: bank.id, amount: "-1400", description: "Bankabgang Trikots"}
+    ]
+  },
+
+  {
+    %{
+      description: "Ersatzmaterial Frühjahr 2026",
+      reference: "SM-2026-002",
+      status: :draft,
+      sphere: :ideal,
+      voucher_number: "2026-0018"
+    },
+    [
+      %{account_id: sportmaterial.id, amount: "380", description: "Ersatzmaterial diverse"},
+      %{account_id: bank.id, amount: "-380", description: "Bankabgang Material"}
+    ]
+  }
+
+]
+
+# Schritt 2: Modul zur Verarbeitung der Datenstruktur
+
+defmodule Seeds.Accounting do
+  def create_transaction(club_id, attrs, entries) do
+    entry_structs =
+      Enum.map(entries, fn entry ->
+        %Entry{
+          club_id: club_id,
+          account_id: entry.account_id,
+          amount: Money.new(:EUR, entry.amount),
+          description: Map.get(entry, :description, "")
+        }
+      end)
+
+    transaction = %AccountingTransaction{
+      club_id: club_id,
+      description: attrs.description,
+      reference: Map.get(attrs, :reference, ""),
+      status: Map.get(attrs, :status, :draft),
+      sphere: Map.get(attrs, :sphere, :ideal),
+      voucher_number: attrs.voucher_number,
+      posted_at: Map.get(attrs, :posted_at, nil),
+      entries: entry_structs
+    }
+
+    case Repo.insert(transaction) do
+      {:ok, result} -> result
+      {:error, changeset} -> nil
+    end
+  end
+
+  def create_transactions(club_id, definitions) do
+    Enum.each(definitions, fn {attrs, entries} ->
+      create_transaction(club_id, attrs, entries)
+    end)
+  end
+
+end
+
+# Schritt 3: Aufruf des Moduls zusammen mit der Datenstruktur
+
+Seeds.Accounting.create_transactions(club_1.id, accounting_transaction_data)

@@ -7,7 +7,6 @@ defmodule SportywebWeb.AccountLiveTest do
   import Sportyweb.OrganizationFixtures
   import Sportyweb.RBAC.RoleFixtures
   import Sportyweb.RBAC.UserRoleFixtures
-  alias Sportyweb.Repo
 
   @create_attrs %{
     accountnumber: "0815",
@@ -50,7 +49,7 @@ defmodule SportywebWeb.AccountLiveTest do
 
       conn = conn |> log_in_user(user)
 
-      {:ok, conn} =
+      {:ok, _conn} =
         conn
         |> live(~p"/accounts")
         |> follow_redirect(conn, ~p"/clubs")

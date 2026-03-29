@@ -2,7 +2,6 @@ defmodule SportywebWeb.AccountLive.Index do
   use SportywebWeb, :live_view
 
   alias Sportyweb.Accounting
-  alias Sportyweb.Accounting.Account
   alias Sportyweb.Organization
 
   @impl true
@@ -37,13 +36,6 @@ defmodule SportywebWeb.AccountLive.Index do
     socket
     |> assign(:page_title, "Kontenplan")
     |> assign(:club, club)
-  end
-
-  defp display_money(money_struct) do
-    case Money.to_string(money_struct) do
-      {:ok, string} -> string
-      _ -> "0,00 €"
-    end
   end
 
 end

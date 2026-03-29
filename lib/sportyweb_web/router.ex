@@ -260,6 +260,16 @@ defmodule SportywebWeb.Router do
 
       live "/accountgroups/:id", AccountgroupLive.Show, :show
 
+      # Journal (Each belongs to a club)
+
+      live "/journal", AccountingTransactionLive.Index, :index_root
+      live "/clubs/:club_id/journal", AccountingTransactionLive.Index, :index
+
+      live "/clubs/:club_id/journal/new", AccountingTransactionLive.NewEdit, :new
+      live "/journal/:id/edit", AccountingTransactionLive.NewEdit, :edit
+
+      live "/journal/:id", AccountingTransactionLive.Show, :show
+
       # Roles
 
       live "/clubs/:club_id/roles", RoleLive.Index, :index
