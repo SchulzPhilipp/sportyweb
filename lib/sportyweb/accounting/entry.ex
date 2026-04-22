@@ -16,7 +16,7 @@ defmodule Sportyweb.Accounting.Entry do
 
     field :description, :string
     field :amount, Money.Ecto.Composite.Type, default_currency: :EUR
-    field :amount_input, :string, virtual: true #virtuelles Feld für das Formular
+    field :amount_input, :string, virtual: true
 
     timestamps(type: :utc_datetime)
   end

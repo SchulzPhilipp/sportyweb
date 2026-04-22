@@ -1,0 +1,41 @@
+<.header>
+  {@page_title}
+  <:actions>
+    <.link navigate={~p"/clubs/#{@club}/accounting_periods/new"}>
+      <.button>Buchungsperiode erstellen</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.card>
+  <%= if @has_periods? do %>
+    <.table
+      id="accounting_periods"
+      rows={@streams.accounting_periods}
+      row_click={fn {_id, accounting_period} -> JS.navigate(~p"/accounting_periods/#{accounting_period}") end}
+    >
+      <:col :let={{_id, accounting_period}} label="Wirtschaftsjahr">
+        {format_string_field(accounting_period.name)}
+      </:col>
+      <:col :let={{_id, accounting_period}} label="Beginn">
+        {format_date(accounting_period.starts_on)}
+      </:col>
+      <:col :let={{_id, accounting_period}} label="Ende">
+        {format_date(accounting_period.ends_on)}
+      </:col>
+      <:col :let={{_id, accounting_period}} label="Buchungen">
+        {accounting_period.transaction_counter}
+      </:col>
+      <:col :let={{_id, accounting_period}} label="Status">
+        {Sportyweb.Accounting.AccountingPeriod.status_labels()[accounting_period.status]}
+      </:col>
+      <:action :let={{_id, accounting_period}}>
+        <.link navigate={~p"/accounts/#{accounting_period}"}>Anzeigen</.link>
+      </:action>
+    </.table>
+  <% else %>
+    <p>
+      Bisher wurde noch keine Buchungsperiode eingerichtet.<br />
+    </p>
+  <% end %>
+</.card>

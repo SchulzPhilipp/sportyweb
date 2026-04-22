@@ -456,44 +456,52 @@ defmodule Sportyweb.Accounting do
   alias Sportyweb.Accounting.Account
 
   @doc """
-  Returns a clubs list of accounts. Preloads associations.
+  Returns all accounts for a club, ordered by account number.
+
+  Preloads `:accountclass` and `:accountgroup` by default. Pass a custom
+  `preloads` list to override. The `opts` parameter is reserved for future
+  filtering options.
 
   ## Examples
 
-      iex> list_accounts(1, [:accountclasses])
+      iex> list_accounts(club_id)
+      [%Account{}, ...]
+
+      iex> list_accounts(club_id, [:accountclass])
       [%Account{}, ...]
 
   """
   def list_accounts(club_id, preloads \\ [:accountclass, :accountgroup]) do
-    Account
-    |> where([a], a.club_id == ^club_id)
-    |> order_by([a], asc: a.accountnumber) # Sortiert auf DB-Ebene
-    |> Repo.all()              # Holt die Liste aus der DB
-    |> Repo.preload(preloads) # Lädt die gewünschten Assoziationen nach
+      Account
+      |> where([a], a.club_id == ^club_id)
+      # Sort by account number at the database level to avoid in-memory sorting.
+      |> order_by([a], asc: a.accountnumber)
+      |> Repo.all()
+      |> Repo.preload(preloads)
   end
 
   @doc """
-  Gets a single account. Preloads associations.
+  Gets a single account by ID. Preloads associations.
 
   Raises `Ecto.NoResultsError` if the Account does not exist.
 
   ## Examples
 
-      iex> get_account!(123, [:club])
+      iex> get_account!(123)
       %Account{}
 
-      iex> get_account!(456, [:club])
+      iex> get_account!(456)
       ** (Ecto.NoResultsError)
 
   """
   def get_account!(id, preloads \\ [:club, :accountclass, :accountgroup]) do
-    Account
-    |> Repo.get!(id)
-    |> Repo.preload(preloads)
+      Account
+      |> Repo.get!(id)
+      |> Repo.preload(preloads)
   end
 
   @doc """
-  Creates a account.
+  Creates an account.
 
   ## Examples
 
@@ -529,7 +537,7 @@ defmodule Sportyweb.Accounting do
   end
 
   @doc """
-  Deletes a account.
+  Deletes an account.
 
   ## Examples
 
@@ -560,11 +568,11 @@ defmodule Sportyweb.Accounting do
   alias Sportyweb.Accounting.Accountclass
 
   @doc """
-  Returns the list of accountclasses.
+  Returns all account classes for a club, ordered by class number.
 
   ## Examples
 
-      iex> list_accountclasses()
+      iex> list_accountclasses(club_id)
       [%Accountclass{}, ...]
 
   """
@@ -577,16 +585,16 @@ defmodule Sportyweb.Accounting do
   end
 
   @doc """
-  Gets a single Accountclass. Preloads associations.
+  Gets a single account class by ID. Preloads associations.
 
   Raises `Ecto.NoResultsError` if the Accountclass does not exist.
 
   ## Examples
 
-      iex> get_accountclass!(123, [:club])
-      %Department{}
+      iex> get_accountclass!(123)
+      %Accountclass{}
 
-      iex> get_accountclass!(456, [:club])
+      iex> get_accountclass!(456)
       ** (Ecto.NoResultsError)
 
   """
@@ -597,7 +605,7 @@ defmodule Sportyweb.Accounting do
   end
 
   @doc """
-  Creates a accountclass.
+  Creates an accountclass.
 
   ## Examples
 
@@ -615,7 +623,7 @@ defmodule Sportyweb.Accounting do
   end
 
   @doc """
-  Updates a accountclass.
+  Updates an accountclass.
 
   ## Examples
 
@@ -633,7 +641,7 @@ defmodule Sportyweb.Accounting do
   end
 
   @doc """
-  Deletes a accountclass.
+  Deletes an accountclass.
 
   ## Examples
 
@@ -664,33 +672,33 @@ defmodule Sportyweb.Accounting do
   alias Sportyweb.Accounting.Accountgroup
 
   @doc """
-  Returns the list of accountgroups.
+  Returns all accountgroups for a club, ordered alphabetically by name.
 
   ## Examples
 
-      iex> list_accountgroups()
+      iex> list_accountgroups(club_id)
       [%Accountgroup{}, ...]
 
   """
   def list_accountgroups(club_id, preloads \\ [:club]) do
     Accountgroup
     |> where([a], a.club_id == ^club_id)
-    |> order_by([a], asc: a.accountgroupname) # Sortiert auf DB-Ebene
-    |> Repo.all()              # Holt die Liste aus der DB
-    |> Repo.preload(preloads) # Lädt die gewünschten Assoziationen nach
+    |> order_by([a], asc: a.accountgroupname)
+    |> Repo.all()
+    |> Repo.preload(preloads)
   end
 
   @doc """
-  Gets a single accountgroup. Preloads associations.
+  Gets a single accountgroup by ID. Preloads associations.
 
   Raises `Ecto.NoResultsError` if the Accountgroup does not exist.
 
   ## Examples
 
-      iex> get_accountgroup!(123, [:club])
+      iex> get_accountgroup!(123)
       %Accountgroup{}
 
-      iex> get_accountgroup!(456, [:club])
+      iex> get_accountgroup!(456)
       ** (Ecto.NoResultsError)
 
   """
@@ -701,7 +709,7 @@ defmodule Sportyweb.Accounting do
   end
 
   @doc """
-  Creates a accountgroup.
+  Creates an accountgroup.
 
   ## Examples
 
@@ -719,7 +727,7 @@ defmodule Sportyweb.Accounting do
   end
 
   @doc """
-  Updates a accountgroup.
+  Updates an accountgroup.
 
   ## Examples
 
@@ -737,7 +745,7 @@ defmodule Sportyweb.Accounting do
   end
 
   @doc """
-  Deletes a accountgroup.
+  Deletes an accountgroup.
 
   ## Examples
 
@@ -761,9 +769,160 @@ defmodule Sportyweb.Accounting do
       %Ecto.Changeset{data: %Accountgroup{}}
 
   """
+
   def change_accountgroup(%Accountgroup{} = accountgroup, attrs \\ %{}) do
     Accountgroup.changeset(accountgroup, attrs)
   end
+
+  alias Sportyweb.Accounting.AccountingPeriod
+
+  @doc """
+  Returns all accounting periods for a club, ordered chronologically.
+
+  ## Examples
+
+      iex> list_accounting_periods(club_id)
+      [%AccountingPeriod{}, ...]
+
+  """
+  def list_accounting_periods(club_id) do
+    AccountingPeriod
+    |> where([p], p.club_id == ^club_id)
+    |> preload(:club)
+    |> order_by([p], asc: p.starts_on)
+    |> Repo.all()
+  end
+
+  @doc """
+  Gets a single accounting period by ID. Preloads associations.
+
+  Raises `Ecto.NoResultsError` if the period does not exist.
+
+  ## Examples
+
+      iex> get_accounting_period!(123)
+      %AccountingPeriod{}
+
+      iex> get_accounting_period!(456)
+      ** (Ecto.NoResultsError)
+
+  """
+  def get_accounting_period!(id, preloads \\ [:club]) do
+    AccountingPeriod
+    |> Repo.get!(id)
+    |> Repo.preload(preloads)
+  end
+
+  @doc """
+  Creates an accounting period.
+
+  ## Examples
+
+      iex> create_accounting_period(%{field: value})
+      {:ok, %AccountingPeriod{}}
+
+      iex> create_accounting_period(%{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def create_accounting_period(attrs) do
+    %AccountingPeriod{}
+    |> AccountingPeriod.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  @doc """
+  Updates an accounting period.
+
+  ## Examples
+
+      iex> update_accounting_period(period, %{field: new_value})
+      {:ok, %AccountingPeriod{}}
+
+      iex> update_accounting_period(period, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_accounting_period(%AccountingPeriod{} = period, attrs) do
+    period
+    |> AccountingPeriod.changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Returns the newest open or closing accounting period for a club, or `nil`
+  if none exists.
+
+  Used as the default fallback period when no active period has been selected
+  in the session.
+
+  ## Examples
+
+      iex> get_newest_open_period(club_id)
+      %AccountingPeriod{}
+
+      iex> get_newest_open_period(club_id_with_no_periods)
+      nil
+
+  """
+  def get_newest_open_period(club_id) do
+    AccountingPeriod
+    |> where([p], p.club_id == ^club_id and p.status in [:open, :closing])
+    |> order_by([p], desc: p.starts_on)
+    |> limit(1)
+    |> Repo.one()
+  end
+
+
+  # @doc """
+  # Gets a single accounting period by ID, returning `nil` if not found.
+
+  # Unlike `get_accounting_period!/1`, this function does not raise on missing
+  # records. Use it when the period may legitimately not exist (e.g. session
+  # lookups after a period has been deleted).
+
+  # ## Examples
+
+  #     iex> get_accounting_period(123)
+  #     %AccountingPeriod{}
+
+  #     iex> get_accounting_period(456)
+  #     nil
+
+  # """
+  # def get_accounting_period(id) do
+  #   Repo.get(AccountingPeriod, id)
+  # end
+
+  @doc """
+  Deletes an accounting period.
+
+  ## Examples
+
+      iex> delete_accounting_period(accounting_period)
+      {:ok, %AccountingPeriod{}}
+
+      iex> delete_accounting_period(accounting_period)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def delete_accounting_period(%AccountingPeriod{} = accounting_period) do
+    Repo.delete(accounting_period)
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for tracking accounting period changes.
+
+  ## Examples
+
+      iex> change_accounting_period(accounting_period)
+      %Ecto.Changeset{data: %AccountingPeriod{}}
+
+  """
+  def change_accounting_period(%AccountingPeriod{} = accounting_period, attrs \\ %{}) do
+    AccountingPeriod.changeset(accounting_period, attrs)
+  end
+
 
 
   alias Sportyweb.Accounting.Entry
@@ -780,9 +939,9 @@ defmodule Sportyweb.Accounting do
   def list_entries(club_id, preloads \\ [:account]) do
     Entry
     |> where([e], e.club_id == ^club_id)
-    |> order_by([e], asc: e.amount) # Sortiert auf DB-Ebene
-    |> Repo.all()              # Holt die Liste aus der DB
-    |> Repo.preload(preloads) # Lädt die gewünschten Assoziationen nach
+    |> order_by([e], asc: e.amount)
+    |> Repo.all()
+    |> Repo.preload(preloads)
   end
 
   @doc """
@@ -884,27 +1043,6 @@ defmodule Sportyweb.Accounting do
     end
   end
 
-  @doc """
-  Returns an `%Ecto.Changeset{}` for tracking description changes of an entry.
-
-  Since entries are immutable by design, only the description field can be
-  changed after creation. Use this changeset to track description changes
-  in LiveView forms.
-
-  ## Examples
-
-      iex> change_entry(entry)
-      %Ecto.Changeset{data: %Entry{}}
-
-      iex> change_entry(entry, %{description: "New description"})
-      %Ecto.Changeset{data: %Entry{}}
-
-  """
-  def change_entry(%Entry{} = entry, attrs \\ %{}) do
-    Entry.update_description_changeset(entry, attrs)
-  end
-
-
   alias Sportyweb.Accounting.AccountingTransaction
 
   @doc """
@@ -912,7 +1050,6 @@ defmodule Sportyweb.Accounting do
 
   Transactions are ordered by insertion date in ascending order.
   Soft-deleted transactions (status `:deleted`) are included by default.
-  Use `list_accounting_transactions/2` with a custom query to exclude them.
 
   ## Examples
 
@@ -927,6 +1064,28 @@ defmodule Sportyweb.Accounting do
     |> Repo.all()
     |> Repo.preload(preloads)
   end
+
+  @doc """
+  Returns all accounting transactions for a club scoped to a specific
+  accounting period.
+
+  Results are ordered by document date and posting timestamp, matching the
+  chronological order expected in a journal view.
+
+  ## Examples
+
+      iex> list_accounting_transactions_for_period(club_id, period_id)
+      [%AccountingTransaction{}, ...]
+
+  """
+  def list_accounting_transactions_for_period(club_id, period_id, preloads \\ [:entries]) do
+    AccountingTransaction
+    |> where([at], at.club_id == ^club_id and at.accounting_period_id == ^period_id)
+    |> order_by([at], asc: at.document_date, asc: at.posted_at)
+    |> Repo.all()
+    |> Repo.preload(preloads)
+  end
+
 
   @doc """
   Gets a single accounting transaction by ID.
@@ -951,8 +1110,9 @@ defmodule Sportyweb.Accounting do
   @doc """
   Creates an accounting transaction.
 
-  Automatically generates a sequential voucher number scoped to the club
-  and the current year (e.g. "2026-0001").
+  Automatically generates a sequential transaction number scoped to the
+  accounting period (e.g. "2026-0001"). The counter is incremented atomically
+  using a database-level update to prevent duplicates under concurrent inserts.
 
   ## Examples
 
@@ -965,39 +1125,40 @@ defmodule Sportyweb.Accounting do
   """
   def create_accounting_transaction(attrs \\ %{}) do
     club_id = attrs[:club_id] || attrs["club_id"]
-    # voucher_number nur generieren wenn club_id vorhanden
-    voucher_number = if is_nil(club_id), do: nil, else: generate_voucher_number(club_id)
+    period_id = attrs[:accounting_period_id] || attrs["accounting_period_id"]
 
-    # Key-Typ der ursprünglichen Map beibehalten
-    voucher_key = if is_map_key(attrs, "club_id"), do: "voucher_number", else: :voucher_number
+    transaction_number =
+      if is_nil(club_id) or is_nil(period_id) do
+        nil
+      else
+        period = get_accounting_period!(period_id)
+        generate_transaction_number(period)
+      end
+
+    # Preserve the key type of the incoming map (atom vs. string keys) to
+    # avoid accidentally converting a string-keyed params map to atom keys.
+    transaction_key = if is_map_key(attrs, "club_id"), do: "transaction_number", else: :transaction_number
 
     %AccountingTransaction{}
-    |> AccountingTransaction.changeset(Map.put(attrs, voucher_key, voucher_number))
+    |> AccountingTransaction.changeset(Map.put(attrs, transaction_key, transaction_number))
     |> Repo.insert()
   end
 
-  defp generate_voucher_number(club_id) do
-    year = Date.utc_today().year
+  # Atomically increments the period's transaction_counter and derives the
+  # transaction number from the period's start year and the new counter value.
+  # Using Repo.update_all with inc: ensures no two concurrent inserts get the
+  # same counter value, even without an application-level lock.
+  defp generate_transaction_number(%AccountingPeriod{} = period) do
+    {1, [updated_period]} =
+      AccountingPeriod
+      |> where([p], p.id == ^period.id)
+      |> select([p], p)
+      |> Repo.update_all(inc: [transaction_counter: 1])
 
-    last_number =
-    from(t in AccountingTransaction,
-      where: t.club_id == ^club_id,
-      where: like(t.voucher_number, ^"#{year}-%"),
-      select: t.voucher_number,
-      order_by: [desc: t.inserted_at]
-    )
-    |> Repo.all()
-    |> Enum.map(fn num ->
-        num
-        |> String.split("-")
-        |> List.last()
-        |> String.to_integer()
-      end)
-    |> Enum.max(fn -> 0 end)
+    year = updated_period.starts_on.year
+    counter = updated_period.transaction_counter
 
-    next_number = last_number + 1
-
-    "#{year}-#{String.pad_leading(to_string(next_number), 4, "0")}"
+    "#{year}-#{String.pad_leading(to_string(counter), 4, "0")}"
   end
 
   @doc """
@@ -1022,15 +1183,19 @@ defmodule Sportyweb.Accounting do
       |> Repo.update()
   end
 
+  # Catch-all clause for all other statuses (posted, voided, deleted).
   def update_accounting_transaction(%AccountingTransaction{}), do: {:error, :immutable}
 
   @doc """
   Soft-deletes an accounting transaction with status `:draft`.
 
-  To preserve voucher number continuity, the transaction record is not physically
-  deleted. Instead, all associated entries are removed from the database and the
-  transaction is marked with status `:deleted`, a `deleted_at` timestamp, and
-  the description "Entwurf gelöscht".
+  To preserve transaction number continuity (§ 239 HGB), the transaction
+  record is not physically deleted. Instead, all associated entries are
+  removed and the transaction is marked with status `:deleted`, a
+  `deleted_at` timestamp, and the description "Entwurf gelöscht".
+
+  Both operations run inside a single database transaction to ensure
+  consistency — either both succeed or neither is persisted.
 
   Returns `{:error, :immutable}` if the transaction is not in `:draft` status.
 
@@ -1045,17 +1210,16 @@ defmodule Sportyweb.Accounting do
   """
   def delete_accounting_transaction(%AccountingTransaction{status: status} = accounting_transaction)
       when status in [:draft] do
-    #Repo.delete(accounting_transaction)
     accounting_transaction = Repo.preload(accounting_transaction, :entries)
 
       Repo.transaction(fn ->
-        # Entries explizit aus der Datenbank löschen
-        from(e in Entry,
-          where: e.accounting_transaction_id == ^accounting_transaction.id
-        )
+      # Delete all entries first to satisfy foreign key constraints before
+      # the transaction record itself is updated.
+        Entry
+        |> where([e], e.accounting_transaction_id == ^accounting_transaction.id)
         |> Repo.delete_all()
 
-        # Transaktion soft-deleten
+        # Transaction soft-deleten
         accounting_transaction
         |> Ecto.Changeset.change(%{
           deleted_at: DateTime.utc_now() |> DateTime.truncate(:second),
@@ -1067,6 +1231,7 @@ defmodule Sportyweb.Accounting do
 
   end
 
+  # Catch-all clause — only :draft transactions can be soft-deleted.
   def delete_accounting_transaction(%AccountingTransaction{}), do: {:error, :immutable}
 
   @doc """
@@ -1140,7 +1305,7 @@ defmodule Sportyweb.Accounting do
   Transitions an accounting transaction from `:pending` to `:posted`.
 
   A posted transaction is immutable and its entries are reflected in the
-  account balances. All associated entries must be balanced — the sum of
+  account balances. All associated entries must be balanced - the sum of
   all entry amounts must equal zero — before the transaction can be posted.
 
   Only transactions with status `:pending` can be posted.
@@ -1175,12 +1340,12 @@ defmodule Sportyweb.Accounting do
   creates a corresponding reversal transaction.
 
   Voiding a posted transaction creates an offsetting reversal entry with
-  negated amounts, preserving the audit trail. The original transaction is
-  marked as `:voided` and the reversal transaction is immediately posted.
+  negated amounts, preserving the audit trail.
+  The original transaction is marked as `:voided` and the reversal
+  transaction is immediately posted.
 
-  Only transactions with status `:posted` can be voided.
-  Both operations are executed within a single database transaction to
-  ensure consistency.
+  Both operations run inside a single database transaction to ensure
+  consistency — if either step fails, the entire operation is rolled back.
 
   Returns `{:error, :invalid_transition}` if the transaction is not in `:posted` status.
   Returns `{:error, changeset}` if the reversal transaction cannot be created.
@@ -1203,8 +1368,12 @@ defmodule Sportyweb.Accounting do
       {:ok, voided_transaction} ->
         reversal_attrs = %{
           "club_id" => accounting_transaction.club_id,
+          "accounting_period_id" => accounting_transaction.accounting_period_id,
           "description" => "Storno: #{accounting_transaction.description}",
-          "reference" => accounting_transaction.voucher_number,
+          "document_date" => Date.utc_today(),
+          # Store the original transaction number as reference so the reversal
+          # can be traced back to the transaction it offsets.
+          "reference" => accounting_transaction.transaction_number,
           "status" => "posted",
           "posted_at" => DateTime.utc_now() |> DateTime.truncate(:second),
           "entries" => build_reversal_entries(accounting_transaction)
@@ -1226,6 +1395,9 @@ defmodule Sportyweb.Accounting do
 
   def void_accounting_transaction(%AccountingTransaction{}), do: {:error, :invalid_transition}
 
+  # Builds the entry map for a reversal transaction by negating all amounts
+  # of the original transaction's entries. The index-keyed map format matches
+  # what AccountingTransaction.reversal_changeset/1 expects.
   defp build_reversal_entries(accounting_transaction) do
     accounting_transaction.entries
     |> Enum.with_index()
@@ -1243,16 +1415,178 @@ defmodule Sportyweb.Accounting do
     |> Enum.into(%{})
   end
 
+  # Creates a reversal transaction with its own sequential transaction number.
+  # Uses reversal_changeset/1 instead of the standard changeset to bypass
+  # validations that are not applicable to system-generated reversal entries.
   defp create_reversal_transaction(attrs) do
-    club_id = Map.get(attrs, "club_id")
-    voucher_number = generate_voucher_number(club_id)
 
-    _attrs_with_voucher = Map.put(attrs, "voucher_number", voucher_number)
+    accounting_period_id = Map.get(attrs, "accounting_period_id")
+    period = get_accounting_period!(accounting_period_id)
+    transaction_number = generate_transaction_number(period)
+
+    _attrs_with_transaction = Map.put(attrs, "transaction_number", transaction_number)
 
     %AccountingTransaction{}
-    |> AccountingTransaction.reversal_changeset(Map.put(attrs, "voucher_number", voucher_number))
+    |> AccountingTransaction.reversal_changeset(Map.put(attrs, "transaction_number", transaction_number))
     |> Repo.insert()
   end
 
+  @doc """
+  Returns accounts for a club grouped by Hauptgruppe (Bestandskonten,
+  Erfolgskonten, Neutralkonten) and then by account class, for rendering
+  the general ledger index view.
+
+  When `accounting_period_id` is provided, only accounts with at least one
+  posted or voided entry in that period are returned, and each account's
+  `computed_balance` is set to the net balance for the period. Accounts with
+  no entries in the period are excluded to keep the ledger view focused.
+
+  When `accounting_period_id` is nil, all accounts are returned without
+  balance data.
+
+  ## Examples
+
+      iex> list_accounts_grouped(club_id, period_id)
+      [{:bestandskonten, [{%Accountclass{}, [%Account{}, ...]}, ...]}, ...]
+
+      iex> list_accounts_grouped(club_id)
+      [{:bestandskonten, [{%Accountclass{}, [%Account{}, ...]}, ...]}, ...]
+
+  """
+  def list_accounts_grouped(club_id, accounting_period_id \\ nil) do
+  accounts =
+    Account
+    |> where([a], a.club_id == ^club_id)
+    |> preload([:accountclass, :accountgroup])
+    |> Repo.all()
+
+  accounts =
+    if accounting_period_id do
+      balances = compute_balances(club_id, accounting_period_id)
+      account_ids_with_entries = Map.keys(balances)
+
+      accounts
+      # Only include accounts that have at least one entry in the period.
+      |> Enum.filter(fn account ->
+        account.id in account_ids_with_entries
+      end)
+      |> Enum.map(fn account ->
+        balance = Map.get(balances, account.id, Money.new(:EUR, 0))
+        %{account | computed_balance: balance}
+      end)
+    else
+      accounts
+    end
+
+    accounts
+    |> Enum.group_by(&account_hauptgruppe/1)
+    |> Enum.map(fn {hauptgruppe, accounts} ->
+      klassen =
+        accounts
+        |> Enum.group_by(& &1.accountclass)
+        |> Enum.sort_by(fn {ac, _} ->
+          String.to_integer(ac.accountclassnumber)
+        end)
+      {hauptgruppe, klassen}
+    end)
+    # Sort Hauptgruppen in the order: Bestandskonten, Erfolgskonten,
+    # Neutralkonten — matching the structure.
+    |> Enum.sort_by(fn {hauptgruppe, _} ->
+      case hauptgruppe do
+        :bestandskonten -> 0
+        :erfolgskonten  -> 1
+        :neutralkonten  -> 2
+      end
+    end)
+
+  end
+
+  # Computes the net balance per account for a given club and period by
+  # summing all entry amounts from posted and voided transactions.
+  # Voided transactions are included because their reversal entries already
+  # offset the original amounts — the net effect on balances is zero.
+  defp compute_balances(club_id, accounting_period_id) do
+    Entry
+    |> join(:inner, [e], t in AccountingTransaction,
+        on: e.accounting_transaction_id == t.id)
+    |> where([e, t],
+        t.club_id == ^club_id and
+        t.status in [:posted, :voided] and
+        t.accounting_period_id == ^accounting_period_id)
+    |> Repo.all()
+    |> Enum.group_by(& &1.account_id)
+    |> Map.new(fn {account_id, entries} ->
+      computed_balance =
+        Enum.reduce(entries, Money.new(:EUR, 0), fn entry, acc ->
+          Money.add!(acc, entry.amount)
+        end)
+      {account_id, computed_balance}
+    end)
+  end
+
+  # Maps an account's type code to one of three Hauptgruppen
+  # :aktiv / :passiv accounts are balance sheet accounts (Bestandskonten)
+  # :aufwand / :ertrag are income statement accounts (Erfolgskonten)
+  # everything else falls into Neutralkonten
+  defp account_hauptgruppe(%Account{accounttypecode: code})
+    when code in [:aktiv, :passiv],   do: :bestandskonten
+  defp account_hauptgruppe(%Account{accounttypecode: code})
+    when code in [:aufwand, :ertrag], do: :erfolgskonten
+  defp account_hauptgruppe(_),        do: :neutralkonten
+
+  @doc """
+  Returns the human-readable label for a Hauptgruppe atom.
+
+  ## Examples
+
+      iex> hauptgruppe_label(:bestandskonten)
+      "Bestandskonten"
+
+  """
+  def hauptgruppe_label(:bestandskonten), do: "Bestandskonten"
+  def hauptgruppe_label(:erfolgskonten),  do: "Erfolgskonten"
+  def hauptgruppe_label(:neutralkonten),  do: "Neutralkonten"
+
+  @doc """
+  Returns an account and all its posted or voided entries for a given period.
+
+  Entries are ordered by document date and transaction number to reflect
+  chronological posting order, matching the display in a T-account view.
+
+  When `accounting_period_id` is nil, entries from all periods are returned as default.
+
+  ## Examples
+
+      iex> get_account_with_entries!(account_id, period_id)
+      %{account: %Account{}, entries: [%Entry{}, ...]}
+
+      iex> get_account_with_entries!(account_id)
+      %{account: %Account{}, entries: [%Entry{}, ...]}
+
+  """
+  def get_account_with_entries!(account_id, accounting_period_id \\ nil) do
+    entries =
+      Entry
+      |> join(:inner, [e], t in AccountingTransaction,
+          on: e.accounting_transaction_id == t.id)
+      |> where([e, t], e.account_id == ^account_id and t.status in [:posted, :voided])
+      |> then(fn query ->
+        if accounting_period_id do
+          where(query, [e, t], t.accounting_period_id == ^accounting_period_id)
+        else
+          query
+        end
+      end)
+      |> order_by([e, t], asc: t.document_date, asc: t.transaction_number)
+      |> preload([e, t], [accounting_transaction: t])
+      |> Repo.all()
+
+    account =
+      account_id
+      |> then(&Repo.get!(Account, &1))
+      |> Repo.preload([:accountclass, :accountgroup])
+
+    %{account: account, entries: entries}
+  end
 
 end

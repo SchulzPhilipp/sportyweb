@@ -115,20 +115,19 @@ defmodule Sportyweb.AccountingTest do
 
     @invalid_attrs %{accountnumber: nil, accountname: nil, accountbalance: nil}
 
-    # test "list_accounts/0 returns all accounts" do
-    #   account = account_fixture()
-    #   account = Sportyweb.Repo.preload(account, [:accountclass, :accountgroup, :accounttype])
-    #   assert Accounting.list_accounts() == [account]
-    # end
+    test "list_accounts/1 returns all accounts" do
+      account = account_fixture()
+      |> Repo.preload([:accountclass, :accountgroup])
+
+      assert Accounting.list_accounts(account.club_id) == [account]
+    end
 
     test "get_account!/1 returns the account with given id" do
       account = account_fixture()
       result = Accounting.get_account!(account.id)
+
       assert result.id == account.id
       assert result.accountnumber == account.accountnumber
-
-      # account = Sportyweb.Repo.preload(account, [:accountclass, :accountgroup, :accounttype])
-      # assert Accounting.get_account!(account.id) == Repo.get(Account, account.id)
     end
 
     test "create_account/1 with valid data creates a account" do
@@ -140,7 +139,6 @@ defmodule Sportyweb.AccountingTest do
         accountnumber: "0815",
         accountname: "some accountname",
         accounttypecode: "neutral",
-        accountbalance: Money.new(:EUR, 120),
         accountclass_id: accountclass.id,
         accountgroup_id: accountgroup.id,
         club_id: club.id
@@ -149,7 +147,6 @@ defmodule Sportyweb.AccountingTest do
       assert {:ok, %Account{} = account} = Accounting.create_account(valid_attrs)
       assert account.accountnumber == "0815"
       assert account.accountname == "some accountname"
-      assert account.accountbalance == Money.new(:EUR, 120)
     end
 
     test "create_account/1 with invalid data returns error changeset" do
@@ -163,24 +160,24 @@ defmodule Sportyweb.AccountingTest do
       update_attrs = %{
         accountnumber: "0815",
         accountname: "some updated accountname",
-        accountbalance: Money.new(:EUR, 456)
       }
 
       assert {:ok, %Account{} = account} = Accounting.update_account(account, update_attrs)
       assert account.accountnumber == "0815"
       assert account.accountname == "some updated accountname"
-      assert account.accountbalance == Money.new(:EUR, 456)
     end
 
     test "update_account/2 with invalid data returns error changeset" do
       account = account_fixture()
       account = Sportyweb.Repo.preload(account, [:club, :accountclass, :accountgroup])
+
       assert {:error, %Ecto.Changeset{}} = Accounting.update_account(account, @invalid_attrs)
       assert account == Accounting.get_account!(account.id)
     end
 
     test "delete_account/1 deletes the account" do
       account = account_fixture()
+
       assert {:ok, %Account{}} = Accounting.delete_account(account)
       assert_raise Ecto.NoResultsError, fn -> Accounting.get_account!(account.id) end
     end
@@ -188,6 +185,7 @@ defmodule Sportyweb.AccountingTest do
     test "change_account/1 returns a account changeset" do
       account = account_fixture()
       account = Sportyweb.Repo.preload(account, [:club, :accountclass, :accountgroup])
+
       assert %Ecto.Changeset{} = Accounting.change_account(account)
     end
   end
@@ -200,10 +198,12 @@ defmodule Sportyweb.AccountingTest do
 
     @invalid_attrs %{accountclassnumber: nil, accountclassname: nil}
 
-    # test "list_accountclasses/0 returns all accountclasses" do
-    #   accountclass = accountclass_fixture()
-    #   assert Accounting.list_accountclasses() == [accountclass]
-    # end
+    test "list_accountclasses/1 returns all accountclasses" do
+       accountclass = accountclass_fixture()
+        |> Repo.preload(:club)
+
+       assert Accounting.list_accountclasses(accountclass.club_id) == [accountclass]
+    end
 
     test "get_accountclass!/1 returns the accountclass with given id" do
       accountclass = accountclass_fixture()
@@ -267,10 +267,12 @@ defmodule Sportyweb.AccountingTest do
 
     @invalid_attrs %{accountgroupname: nil}
 
-    # test "list_accountgroups/0 returns all accountgroups" do
-    #   accountgroup = accountgroup_fixture()
-    #   assert Accounting.list_accountgroups() == [accountgroup]
-    # end
+    test "list_accountgroups/1 returns all accountgroups" do
+      accountgroup = accountgroup_fixture()
+      |> Repo.preload(:club)
+
+      assert Accounting.list_accountgroups(accountgroup.club_id) == [accountgroup]
+    end
 
     test "get_accountgroup!/1 returns the accountgroup with given id" do
       accountgroup = accountgroup_fixture()
@@ -327,6 +329,100 @@ defmodule Sportyweb.AccountingTest do
     end
   end
 
+  describe "periods" do
+    alias Sportyweb.Accounting.AccountingPeriod
+
+    import Sportyweb.AccountingFixtures
+    import Sportyweb.OrganizationFixtures
+
+    @invalid_attrs %{name: nil}
+
+    test "list_accounting_periods/1 returns all accountingperiods" do
+      accounting_period = accounting_period_fixture()
+      |> Repo.preload(:club)
+
+      assert Accounting.list_accounting_periods(accounting_period.club_id) == [accounting_period]
+    end
+
+    test "get_accounting_period!/1 returns the accountingperiod with given id" do
+      accounting_period = accounting_period_fixture()
+      result = Accounting.get_accounting_period!(accounting_period.id)
+
+      assert result.id == accounting_period.id
+    end
+
+    test "create_accounting_period/1 with valid data creates a accountingperiod" do
+      club = club_fixture()
+
+      valid_attrs = %{
+        name: "2026",
+        starts_on: ~D[2026-01-01],
+        ends_on: ~D[2026-12-31],
+        transaction_counter: 0,
+        status: "open",
+        club_id: club.id
+      }
+
+      assert {:ok, %AccountingPeriod{} = accounting_period} = Accounting.create_accounting_period(valid_attrs)
+      assert accounting_period.name == "2026"
+      assert accounting_period.status == :open
+    end
+
+    test "create_accounting_period/1 with invalid data returns error changeset" do
+      assert {:error, %Ecto.Changeset{}} = Accounting.create_accounting_period(@invalid_attrs)
+    end
+
+    test "update_accounting_period/2 with valid data updates the accounting_period" do
+      accounting_period = accounting_period_fixture()
+      |> Repo.preload(:club)
+
+      update_attrs = %{
+        name: "2027",
+        starts_on: ~D[2027-01-01],
+        ends_on: ~D[2027-12-31],
+        transaction_counter: 0,
+        status: "open",
+        club_id: accounting_period.club_id
+      }
+
+      assert {:ok, %AccountingPeriod{} = accounting_period} = Accounting.update_accounting_period(accounting_period, update_attrs)
+      assert accounting_period.name == "2027"
+    end
+
+    test "update_accounting_period/2 with invalid data returns error changeset" do
+      accounting_period = accounting_period_fixture()
+      |> Repo.preload(:club)
+
+      assert {:error, %Ecto.Changeset{}} = Accounting.update_accounting_period(accounting_period, @invalid_attrs)
+    end
+
+    test "get_newest_open_period/1  Returns the newest open or closing accounting_period for a club" do
+      first_accounting_period = accounting_period_fixture()
+      second_accounting_period = accounting_period_fixture(
+        club_id: first_accounting_period.club_id,
+        name: "2027",
+        starts_on: ~D[2027-01-01],
+        ends_on: ~D[2027-12-31])
+      result = Accounting.get_newest_open_period(first_accounting_period.club_id)
+
+      assert result.id == second_accounting_period.id
+    end
+
+    test "delete_accounting_period/1 deletes the accounting_period" do
+      accounting_period = accounting_period_fixture()
+      |> Repo.preload(:club)
+
+      assert {:ok, %AccountingPeriod{}} = Accounting.delete_accounting_period(accounting_period)
+      assert_raise Ecto.NoResultsError, fn -> Accounting.get_accounting_period!(accounting_period.id) end
+    end
+
+    test "change_accounting_period/1 returns a accounting_period changeset" do
+      accounting_period = accounting_period_fixture()
+      assert %Ecto.Changeset{} = Accounting.change_accounting_period(accounting_period)
+    end
+
+  end
+
   describe "entries" do
     alias Sportyweb.Accounting.Entry
 
@@ -336,12 +432,6 @@ defmodule Sportyweb.AccountingTest do
     @invalid_attrs %{description: nil, amount: nil}
 
     test "list_entries/1 returns all entries" do
-      # entry =
-      #   entry_fixture()
-      #   |> Repo.preload([:accounting_transaction, :account])
-
-      # assert Accounting.list_entries(entry.club_id) == [entry]
-
       entry = entry_fixture()
       [result] = Accounting.list_entries(entry.club_id)
 
@@ -443,8 +533,17 @@ defmodule Sportyweb.AccountingTest do
 
     test "create_accounting_transaction/1 with valid data creates a accounting_transaction" do
       club = club_fixture()
+      period = accounting_period_fixture()
 
-      valid_attrs = %{club_id: club.id, status: "draft", description: "some description", reference: "some reference"}
+      valid_attrs = %{
+        description: "some description",
+        document_date: ~D[2026-01-31],
+        reference: "some reference",
+        posted_at: ~U[2026-03-07 22:11:00Z],
+        status: "draft",
+        club_id: club.id,
+        accounting_period_id: period.id
+      }
 
       assert {:ok, %AccountingTransaction{} = accounting_transaction} = Accounting.create_accounting_transaction(valid_attrs)
       assert accounting_transaction.status == :draft
@@ -453,8 +552,6 @@ defmodule Sportyweb.AccountingTest do
     end
 
     test "create_accounting_transaction/1 with invalid data returns error changeset" do
-
-
       assert {:error, %Ecto.Changeset{}} = Accounting.create_accounting_transaction(@invalid_attrs)
     end
 
@@ -481,12 +578,93 @@ defmodule Sportyweb.AccountingTest do
 
     test "delete_accounting_transaction/1 deletes the accounting_transaction" do
       accounting_transaction = accounting_transaction_fixture()
-      assert {:ok, %AccountingTransaction{}} = Accounting.delete_accounting_transaction(accounting_transaction)
+
+      assert {:ok, deleted} = Accounting.delete_accounting_transaction(accounting_transaction)
+      assert deleted.description == "Entwurf gelöscht"
+      assert deleted.status == :deleted
+      assert deleted.deleted_at != nil
+
     end
+
+    test "delete_accounting_transaction/1 with other status then :draft returns error immutable" do
+      accounting_transaction = accounting_transaction_fixture(status: :pending)
+
+      assert {:error, :immutable} = Accounting.delete_accounting_transaction(accounting_transaction)
+     end
 
     test "change_accounting_transaction/1 returns a accounting_transaction changeset" do
       accounting_transaction = accounting_transaction_fixture()
       assert %Ecto.Changeset{} = Accounting.change_accounting_transaction(accounting_transaction)
     end
+
+    test "submit_accounting_transaction change the status from :draft to :pending" do
+      accounting_transaction = accounting_transaction_fixture()
+
+      assert {:ok, result} = Accounting.submit_accounting_transaction(accounting_transaction)
+      assert result.status == :pending
+      assert result.status != accounting_transaction.status
+    end
+
+    test "submit_accounting_transaction in case of an invalid transition" do
+      accounting_transaction = accounting_transaction_fixture(status: :pending)
+
+      assert {:error, :invalid_transition} = Accounting.submit_accounting_transaction(accounting_transaction)
+    end
+
+    test "revert_to_draft_accounting_transaction change the status from :pending to :draft" do
+      accounting_transaction = accounting_transaction_fixture(status: :pending)
+
+      assert {:ok, result} = Accounting.revert_to_draft_accounting_transaction(accounting_transaction)
+      assert result.status == :draft
+      assert result.status != accounting_transaction.status
+    end
+
+    test "revert_to_draft_accounting_transaction in case of an invalid transition" do
+      accounting_transaction = accounting_transaction_fixture()
+
+      assert {:error, :invalid_transition} = Accounting.revert_to_draft_accounting_transaction(accounting_transaction)
+    end
+
+    test "post_accounting_transaction change the status from :pending to :posted" do
+      accounting_transaction = accounting_transaction_fixture(status: :pending)
+
+      assert {:ok, result} = Accounting.post_accounting_transaction(accounting_transaction)
+      assert result.status == :posted
+      assert result.status != accounting_transaction.status
+    end
+
+    test "post_accounting_transaction in case of an invalid transition" do
+      accounting_transaction = accounting_transaction_fixture()
+
+      assert {:error, :invalid_transition} = Accounting.post_accounting_transaction(accounting_transaction)
+    end
+
+    test "void_accounting_transaction voids a booked transaction" do
+      accounting_transaction = accounting_transaction_fixture()
+      assert {:ok, pending} = Accounting.submit_accounting_transaction(accounting_transaction)
+      assert {:ok, posted} = Accounting.post_accounting_transaction(pending)
+      assert {:ok, _voided} = Accounting.void_accounting_transaction(posted)
+    end
+
+    test "void_accounting_transaction in case of an invalid transition" do
+      accounting_transaction = accounting_transaction_fixture()
+
+      assert {:error, :invalid_transition} = Accounting.void_accounting_transaction(accounting_transaction)
+    end
+
+    test "get_account_with_entries! returns a map of account => entry" do
+      account = account_fixture()
+      accounting_transaction = accounting_transaction_fixture()
+      entry_soll = entry_fixture(account_id: account.id, accounting_transaction_id: accounting_transaction.id, amount: "120")
+      _entry_haben = entry_fixture(account_id: account.id, accounting_transaction_id: accounting_transaction.id, amount: "-120")
+
+      assert {:ok, pending} = Accounting.submit_accounting_transaction(accounting_transaction)
+      assert {:ok, _posted} = Accounting.post_accounting_transaction(pending)
+      result = Accounting.get_account_with_entries!(account.id)
+      assert result.account.id == account.id
+      assert is_list(result.entries)
+      assert Enum.any?(result.entries, fn e -> e.id == entry_soll.id end)
+    end
+
   end
 end

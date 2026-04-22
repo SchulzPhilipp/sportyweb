@@ -102,7 +102,6 @@ defmodule Sportyweb.AccountingFixtures do
         accountgroup_id: accountgroup.id,
         accounttypecode: "neutral",
         club_id: club.id,
-        accountbalance: Money.new(:EUR, 120),
         accountname: "some accountname",
         accountnumber: random_accountnumber
       })
@@ -133,24 +132,50 @@ defmodule Sportyweb.AccountingFixtures do
     entry
   end
 
+
+  @doc """
+  Generate a accounting_period.
+  """
+  def accounting_period_fixture(attrs \\ %{}) do
+    club = club_fixture()
+
+    {:ok, accounting_period} =
+      attrs
+      |> Enum.into(%{
+        name: "2026",
+        starts_on: ~D[2026-01-01],
+        ends_on: ~D[2026-12-31],
+        transaction_counter: 0,
+        status: "open",
+        club_id: club.id
+      })
+      |> Sportyweb.Accounting.create_accounting_period()
+
+    accounting_period
+  end
+
+
   @doc """
   Generate a accounting_transaction.
   """
   def accounting_transaction_fixture(attrs \\ %{}) do
     club = club_fixture()
+    period = accounting_period_fixture(club_id: club.id)
 
     {:ok, accounting_transaction} =
       attrs
       |> Enum.into(%{
         description: "some description",
-        voucher_number: "2099-999",
-        posted_at: ~U[2026-03-07 22:11:00Z],
+        transaction_number: "2099-999",
+        document_date: ~D[2026-01-31],
         reference: "some reference",
         status: "draft",
-        club_id: club.id
+        club_id: club.id,
+        accounting_period_id: period.id
       })
       |> Sportyweb.Accounting.create_accounting_transaction()
 
     accounting_transaction
   end
+
 end

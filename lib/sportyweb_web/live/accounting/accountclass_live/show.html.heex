@@ -1,0 +1,23 @@
+<.header>
+  {@page_title}
+  <:actions>
+    <.link patch={~p"/accountclasses/#{@accountclass}/edit"} phx-click={JS.push_focus()}>
+      <.button>Kontenklasse bearbeiten</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.card>
+  <.list>
+    <:item title="Nummer">
+      {format_string_field(@accountclass.accountclassnumber)}
+    </:item>
+    <:item title="Bezeichnung">
+      {format_string_field(@accountclass.accountclassname)}
+    </:item>
+  </.list>
+</.card>
+
+<.back navigate={~p"/clubs/#{@accountclass.club_id}/accountclasses"}>
+  Zurück zu Kontenklassen
+</.back>

@@ -6,7 +6,6 @@ defmodule Sportyweb.Repo.Migrations.CreateAccounts do
       add :id, :binary_id, primary_key: true
       add :accountnumber, :string, null: false
       add :accountname, :string, null: false
-      add :accountbalance, :money_with_currency, null: false
 
       add :accounttypecode, :string, null: false, default: "neutral"
 

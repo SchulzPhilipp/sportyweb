@@ -1,0 +1,33 @@
+<.header>
+  {@page_title}
+  <:actions>
+    <.link patch={~p"/accounting_periods/#{@accounting_period}/edit"} phx-click={JS.push_focus()}>
+      <.button>Buchungsperiode bearbeiten</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.card>
+  <.list>
+    <:item title="Wirtschaftsjahr">
+      {format_string_field(@accounting_period.name)}
+    </:item>
+    <:item title="Beginn">
+      {format_date(@accounting_period.starts_on)}
+    </:item>
+    <:item title="Ende">
+      {format_date(@accounting_period.ends_on)}
+    </:item>
+    <:item title="Anzahl Buchungen">
+      {@accounting_period.transaction_counter}
+    </:item>
+    <:item title="Status">
+      {Sportyweb.Accounting.AccountingPeriod.status_labels()[@accounting_period.status]}
+    </:item>
+
+  </.list>
+</.card>
+
+<.back navigate={~p"/clubs/#{@accounting_period.club_id}/accounting_periods"}>
+  Zurück zu Buchungsperioden
+</.back>

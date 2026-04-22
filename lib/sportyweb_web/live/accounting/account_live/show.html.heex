@@ -1,0 +1,31 @@
+<.header>
+  {@page_title}
+  <:actions>
+    <.link patch={~p"/accounts/#{@account}/edit"} phx-click={JS.push_focus()}>
+      <.button>Konto bearbeiten</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.card>
+  <.list>
+    <:item title="Kontonummer">
+      {format_string_field(@account.accountnumber)}
+    </:item>
+    <:item title="Kontoname">
+      {format_string_field(@account.accountname)}
+    </:item>
+    <:item title="Kontoklasse">
+      {format_string_field(@account.accountclass.accountclassname)}
+    </:item>
+    <:item title="Kontogruppe">
+      {format_string_field(@account.accountgroup.accountgroupname)}
+    </:item>
+    <:item title="Kontotyp">
+      {Sportyweb.Accounting.Account.accounttypecode_labels()[@account.accounttypecode]}
+    </:item>
+  </.list>
+</.card>
+<.back navigate={~p"/clubs/#{@account.club_id}/accounts"}>
+  Zurück zum Kontenplan
+</.back>

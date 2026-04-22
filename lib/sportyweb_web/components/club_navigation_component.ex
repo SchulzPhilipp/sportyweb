@@ -164,14 +164,15 @@ defmodule SportywebWeb.ClubNavigationComponent do
         <ul class={["mb-1 px-2", if(!@show_submenu_accounting, do: "hidden")]}>
           <li>
             <.link
-              navigate={~p"/clubs/#{@club}/accounts"}
+              navigate={~p"/clubs/#{@club}/accounting_periods"}
               class={[
                 @classes_menu_item,
                 @classes_submenu_item,
-                if(@club_navigation_current_item == :accounting, do: @classes_menu_item_active)
-                  ]}
+                if(@club_navigation_current_item == :accounting_periods,
+                  do: @classes_menu_item_active)
+              ]}
             >
-              <span class="truncate">Kontenverwaltung</span>
+              <span class="truncate">Buchungsperioden</span>
             </.link>
           </li>
           <li>
@@ -180,10 +181,10 @@ defmodule SportywebWeb.ClubNavigationComponent do
               class={[
                 @classes_menu_item,
                 @classes_submenu_item,
-                if(@club_navigation_current_item == :accounting, do: @classes_menu_item_active)
+                if(@club_navigation_current_item == :accounts, do: @classes_menu_item_active)
                   ]}
             >
-              <span class="truncate">Belegwesen</span>
+              <span class="truncate">Kontenverwaltung</span>
             </.link>
           </li>
           <li>
@@ -192,7 +193,7 @@ defmodule SportywebWeb.ClubNavigationComponent do
               class={[
                 @classes_menu_item,
                 @classes_submenu_item,
-                if(@club_navigation_current_item == :accounting, do: @classes_menu_item_active)
+                if(@club_navigation_current_item == :journal, do: @classes_menu_item_active)
                   ]}
             >
               <span class="truncate">Journal</span>
@@ -200,26 +201,14 @@ defmodule SportywebWeb.ClubNavigationComponent do
           </li>
           <li>
             <.link
-              navigate={~p"/clubs/#{@club}/accounts"}
+              navigate={~p"/clubs/#{@club}/ledger"}
               class={[
                 @classes_menu_item,
                 @classes_submenu_item,
-                if(@club_navigation_current_item == :accounting, do: @classes_menu_item_active)
+                if(@club_navigation_current_item == :ledger, do: @classes_menu_item_active)
                   ]}
             >
               <span class="truncate">Hauptbuch</span>
-            </.link>
-          </li>
-          <li>
-            <.link
-              navigate={~p"/clubs/#{@club}/accounts"}
-              class={[
-                @classes_menu_item,
-                @classes_submenu_item,
-                if(@club_navigation_current_item == :accounting, do: @classes_menu_item_active)
-                  ]}
-            >
-              <span class="truncate">Auswertungen</span>
             </.link>
           </li>
         </ul>
@@ -248,11 +237,14 @@ defmodule SportywebWeb.ClubNavigationComponent do
         assigns.club_navigation_current_item == :subsidies
 
     show_submenu_accounting =
+      assigns.club_navigation_current_item == :accounting_periods ||
       assigns.club_navigation_current_item == :accounts ||
       assigns.club_navigation_current_item == :accountclasses ||
       assigns.club_navigation_current_item == :accountgroups ||
       assigns.club_navigation_current_item == :accounttypes ||
-      assigns.club_navigation_current_item == :journal
+      assigns.club_navigation_current_item == :journal ||
+      assigns.club_navigation_current_item == :ledger
+
 
     {:ok,
      socket

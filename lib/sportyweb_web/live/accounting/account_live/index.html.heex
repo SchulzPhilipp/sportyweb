@@ -1,0 +1,92 @@
+<.header>
+  {@page_title}
+  <:actions>
+    <.link navigate={~p"/clubs/#{@club}/accountclasses"}>
+      <.button>Kontenklassen</.button>
+    </.link>
+  </:actions>
+  <:actions>
+    <.link navigate={~p"/clubs/#{@club}/accountgroups"}>
+      <.button>Kontengruppen</.button>
+    </.link>
+  </:actions>
+  <:actions>
+    <.link navigate={~p"/clubs/#{@club}/accounts/new"}>
+      <.button>Konto erstellen</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.card>
+  <h3 class="text-sm font-medium text-zinc-500 uppercase tracking-wide mb-3">
+    Schnellsuche
+  </h3>
+  <form phx-change="search_accounts">
+    <input
+      type="text"
+      id="account-search"
+      name="query"
+      value={@search_query}
+      placeholder="Konto suchen..."
+      class="w-full mb-4 px-3 py-2 text-sm border border-zinc-200 rounded-md"
+      phx-debounce="200"
+      autocomplete="off"
+    />
+  </form>
+  <%= if @search_results == [] do %>
+      <p class="text-sm text-zinc-400 py-2">Keine Konten gefunden.</p>
+    <% else %>
+      <.table
+        id="search-results"
+        rows={@search_results |> Enum.map(&{&1.id, &1})}
+        row_click={fn {_id, account} -> JS.navigate(~p"/accounts/#{account.id}") end}
+      >
+        <:col :let={{_id, account}} label="Kontonr.">
+          <%= account.accountnumber %>
+        </:col>
+        <:col :let={{_id, account}} label="Bezeichnung">
+          <%= account.accountname %>
+        </:col>
+        <:col :let={{_id, account}} label="Typ">
+          <%= Account.accounttypecode_labels()[account.accounttypecode] %>
+        </:col>
+      </.table>
+  <% end %>
+</.card>
+
+<br />
+<.card>
+  <h3 class="text-sm font-medium text-zinc-500 uppercase tracking-wide mb-3">
+    Kontenplan
+  </h3>
+  <%= for accountclass <- @accountclasses do %>
+    <details class="border-b border-zinc-100 last:border-0">
+      <summary class="flex items-center justify-between py-3 px-2 cursor-pointer hover:bg-zinc-50 rounded-md list-none">
+        <span class="text-sm font-medium text-zinc-800">
+          <%= accountclass.accountclassnumber %> · <%= accountclass.accountclassname %>
+        </span>
+        <span class="text-xs text-zinc-400">
+          <%= length(accountclass.accounts) %> Konten
+        </span>
+      </summary>
+      <div class="pb-4 px-2">
+        <.table
+          id={"accounts-#{accountclass.id}"}
+          rows={accountclass.accounts |> Enum.sort_by(& &1.accountnumber) |> Enum.map(&{&1.id, &1})}
+          row_click={fn {_id, account} -> JS.navigate(~p"/accounts/#{account.id}") end}
+        >
+          <:col :let={{_id, account}} label="Kontonr.">
+            <%= account.accountnumber %>
+          </:col>
+          <:col :let={{_id, account}} label="Bezeichnung">
+            <%= account.accountname %>
+          </:col>
+          <:col :let={{_id, account}} label="Typ">
+            <%= Account.accounttypecode_labels()[account.accounttypecode] %>
+          </:col>
+        </.table>
+      </div>
+    </details>
+  <% end %>
+</.card>
+

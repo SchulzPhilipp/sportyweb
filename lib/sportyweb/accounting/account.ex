@@ -15,7 +15,9 @@ defmodule Sportyweb.Accounting.Account do
 
     field :accountnumber, :string
     field :accountname, :string
-    field :accountbalance, Money.Ecto.Composite.Type, default_currency: :EUR
+    field :computed_balance, Money.Ecto.Composite.Type,
+      virtual: true,
+      default_currency: :EUR
 
     field :accounttypecode, Ecto.Enum,
       values: [:aktiv, :passiv, :aufwand, :ertrag, :neutral]
@@ -47,7 +49,6 @@ defmodule Sportyweb.Accounting.Account do
       :accountnumber,
       :accountname,
       :accounttypecode,
-      :accountbalance
     ])
     |> validate_required([
       :club_id,
@@ -56,7 +57,6 @@ defmodule Sportyweb.Accounting.Account do
       :accountnumber,
       :accountname,
       :accounttypecode,
-      :accountbalance
     ])
     |> validate_length(:accountnumber, max: 8)
     |> validate_length(:accountname, max: 250)

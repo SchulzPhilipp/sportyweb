@@ -1,0 +1,79 @@
+<.header>
+  {@page_title}
+  <:actions>
+      <.link patch={~p"/clubs/#{@club.id}/journal/new"}>
+        <.button>Buchung erstellen</.button>
+      </.link>
+  </:actions>
+</.header>
+
+<.card>
+    <div class="flex justify-center my-4">
+      <.period_navigator
+        active_period={@active_period}
+        all_periods={@all_periods}
+        period_index={@period_index}
+        club={@club}
+      />
+      </div>
+  <%= if @has_transactions? do %>
+    <div class="grid grid-cols-1 gap-8">
+      <%= for {hauptgruppe, klassen} <- @grouped_accounts do %>
+        <div class="grid grid-cols-1 gap-4">
+          <h2 class="text-lg font-semibold text-zinc-800">
+            <%= Accounting.hauptgruppe_label(hauptgruppe) %>
+          </h2>
+
+          <%= for {accountclass, accounts} <- klassen do %>
+          <.card>
+            <div class="grid grid-cols-1 gap-2">
+              <h3 class="text-sm font-medium text-zinc-500">
+                Klasse <%= accountclass.accountclassnumber %> –
+                <%= accountclass.accountclassname %>
+              </h3>
+
+              <table class="w-full table-fixed text-sm">
+                <colgroup>
+                  <col class="w-32" />
+                  <col />
+                  <col class="w-32" />
+                  <col class="w-32" />
+                  <col class="w-32" />
+                </colgroup>
+                <thead class="text-left leading-6 text-zinc-500 border-b border-zinc-200">
+                  <tr>
+                    <th class="pb-3 pr-6 font-normal">Kontonummer</th>
+                    <th class="pb-3 pr-6 font-normal">Kontobezeichnung</th>
+                    <th class="pb-3 pr-6 font-normal">Typ</th>
+                    <th class="pb-3 pr-6 font-normal text-right">Soll</th>
+                    <th class="pb-3 font-normal text-right">Haben</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-zinc-100 text-zinc-700">
+                  <%= for account <- Enum.sort_by(accounts, & &1.accountnumber) do %>
+                    <tr class="hover:bg-zinc-50 hover:cursor-pointer" phx-click={JS.navigate(~p"/clubs/#{@club_id}/ledger/#{account.id}")}>
+                      <td class="py-3 pr-6"><b><%= account.accountnumber %></b></td>
+                      <td class="py-3 pr-6"><%= account.accountname %></td>
+                      <td class="py-3 pr-6">
+                        <%= Account.accounttypecode_labels()[account.accounttypecode] %>
+                      </td>
+                      <td class="py-3 pr-6 text-right">
+                        <%= format_money(soll_betrag(account.computed_balance)) %>
+                      </td>
+                      <td class="py-3 text-right">
+                        <%= format_money(haben_betrag(account.computed_balance)) %>
+                      </td>
+                    </tr>
+                  <% end %>
+                </tbody>
+              </table>
+            </div>
+            </.card>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+  <% else %>
+    <p>Bisher wurden noch keine Buchungen erstellt.</p>
+  <% end %>
+</.card>

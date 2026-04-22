@@ -230,45 +230,64 @@ defmodule SportywebWeb.Router do
 
       live "/subsidies/:id", SubsidyLive.Show, :show
 
-      # Accounts (Chart of Accounts, Each belongs to a club)
+      # Accounting Periods (each period belongs to a club)
 
-      live "/accounts", AccountLive.Index, :index_root
-      live "/clubs/:club_id/accounts", AccountLive.Index, :index
+      live "/accounting_periods", Accounting.AccountingPeriodLive.Index, :index_root
+      live "/clubs/:club_id/accounting_periods", Accounting.AccountingPeriodLive.Index, :index
 
-      live "/clubs/:club_id/accounts/new", AccountLive.NewEdit, :new
-      live "/accounts/:id/edit", AccountLive.NewEdit, :edit
+      live "/clubs/:club_id/accounting_periods/new", Accounting.AccountingPeriodLive.NewEdit, :new
+      live "/accounting_periods/:id/edit", Accounting.AccountingPeriodLive.NewEdit, :edit
 
-      live "/accounts/:id", AccountLive.Show, :show
+      live "/accounting_periods/:id", Accounting.AccountingPeriodLive.Show, :show
 
-      # Accountclasses (Chart of Accounts, Each belongs to a club)
+      get "/clubs/:club_id/periods/:period_id/activate", Accounting.PeriodController, :activate
 
-      live "/accountclasses", AccountclassLive.Index, :index_root
-      live "/clubs/:club_id/accountclasses", AccountclassLive.Index, :index
+      # Accounts (Each belongs to a club)
 
-      live "/clubs/:club_id/accountclasses/new", AccountclassLive.NewEdit, :new
-      live "/accountclasses/:id/edit", AccountclassLive.NewEdit, :edit
+      live "/accounts", Accounting.AccountLive.Index, :index_root
+      live "/clubs/:club_id/accounts", Accounting.AccountLive.Index, :index
 
-      live "/accountclasses/:id", AccountclassLive.Show, :show
+      live "/clubs/:club_id/accounts/new", Accounting.AccountLive.NewEdit, :new
+      live "/accounts/:id/edit", Accounting.AccountLive.NewEdit, :edit
 
-      # Accountgroups (Chart of Accounts, Each belongs to a club)
+      live "/accounts/:id", Accounting.AccountLive.Show, :show
 
-      live "/accountgroups", AccountgroupLive.Index, :index_root
-      live "/clubs/:club_id/accountgroups", AccountgroupLive.Index, :index
+      # Accountclasses (Each belongs to a club)
 
-      live "/clubs/:club_id/accountgroups/new", AccountgroupLive.NewEdit, :new
-      live "/accountgroups/:id/edit", AccountgroupLive.NewEdit, :edit
+      live "/accountclasses", Accounting.AccountclassLive.Index, :index_root
+      live "/clubs/:club_id/accountclasses", Accounting.AccountclassLive.Index, :index
 
-      live "/accountgroups/:id", AccountgroupLive.Show, :show
+      live "/clubs/:club_id/accountclasses/new", Accounting.AccountclassLive.NewEdit, :new
+      live "/accountclasses/:id/edit", Accounting.AccountclassLive.NewEdit, :edit
+
+      live "/accountclasses/:id", Accounting.AccountclassLive.Show, :show
+
+      # Accountgroups (Each belongs to a club)
+
+      live "/accountgroups", Accounting.AccountgroupLive.Index, :index_root
+      live "/clubs/:club_id/accountgroups", Accounting.AccountgroupLive.Index, :index
+
+      live "/clubs/:club_id/accountgroups/new", Accounting.AccountgroupLive.NewEdit, :new
+      live "/accountgroups/:id/edit", Accounting.AccountgroupLive.NewEdit, :edit
+
+      live "/accountgroups/:id", Accounting.AccountgroupLive.Show, :show
 
       # Journal (Each belongs to a club)
 
-      live "/journal", AccountingTransactionLive.Index, :index_root
-      live "/clubs/:club_id/journal", AccountingTransactionLive.Index, :index
+      live "/journal", Accounting.Journal.AccountingTransactionLive.Index, :index_root
+      live "/clubs/:club_id/journal", Accounting.Journal.AccountingTransactionLive.Index, :index
 
-      live "/clubs/:club_id/journal/new", AccountingTransactionLive.NewEdit, :new
-      live "/journal/:id/edit", AccountingTransactionLive.NewEdit, :edit
+      live "/clubs/:club_id/journal/new", Accounting.Journal.AccountingTransactionLive.NewEdit, :new
+      live "/journal/:id/edit", Accounting.Journal.AccountingTransactionLive.NewEdit, :edit
 
-      live "/journal/:id", AccountingTransactionLive.Show, :show
+      live "/journal/:id", Accounting.Journal.AccountingTransactionLive.Show, :show
+
+      # Ledger (Each belongs to a club)
+
+      live "/ledger", Accounting.Ledger.AccountingTransactionLive.Index, :index_root
+      live "/clubs/:club_id/ledger", Accounting.Ledger.AccountingTransactionLive.Index, :index
+
+      live "/clubs/:club_id/ledger/:account_id", Accounting.Ledger.AccountingTransactionLive.Show, :show
 
       # Roles
 

@@ -1,0 +1,94 @@
+<.header>
+  {@page_title}
+  <:subtitle>
+    <%= @account.accountnumber %> ·
+    <%= Account.accounttypecode_labels()[@account.accounttypecode] %> ·
+    <%= @account.accountclass.accountclassname %>
+  </:subtitle>
+  <:actions>
+      <.link patch={~p"/clubs/#{@club_id}/journal/new"}>
+        <.button>Buchung erstellen</.button>
+      </.link>
+  </:actions>
+</.header>
+
+<.card>
+    <div class="flex justify-center my-4">
+      <.period_navigator
+        all_periods={@all_periods}
+        active_period={@active_period}
+        period_index={@period_index}
+        club_id={@club_id}
+        club={@club}
+        return_to={~p"/clubs/#{@club_id}/ledger/#{@account.id}"}
+      />
+    </div>
+  <%= if @entries == [] do %>
+    <p>Keine Buchungen für dieses Konto vorhanden.</p>
+  <% else %>
+    <table class="w-full table-fixed text-sm">
+      <colgroup>
+        <col class="w-28" />
+        <col class="w-28" />
+        <col />
+        <col class="w-32" />
+        <col class="w-36" />
+        <col class="w-36" />
+      </colgroup>
+      <thead class="text-left leading-6 text-zinc-500 border-b border-zinc-200">
+        <tr>
+          <th class="pb-3 pr-6 font-normal">Belegdatum</th>
+          <th class="pb-3 pr-6 font-normal">Buchungsnr.</th>
+          <th class="pb-3 pr-6 font-normal">Beschreibung</th>
+          <th class="pb-3 pr-6 font-normal">Sphäre</th>
+          <th class="pb-3 pr-6 font-normal text-right">Soll</th>
+          <th class="pb-3 font-normal text-right">Haben</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-zinc-100 text-zinc-700">
+        <%= for entry <- @entries do %>
+          <tr class="hover:bg-zinc-50 hover:cursor-pointer"
+            phx-click={JS.navigate(~p"/journal/#{entry.accounting_transaction_id}")}
+          >
+            <td class="py-3 pr-6">
+              <%= format_date_field_dmy(entry.accounting_transaction.document_date) %>
+            </td>
+            <td class="py-3 pr-6">
+              <%= entry.accounting_transaction.transaction_number || "—" %>
+            </td>
+            <td class="py-3 pr-6">
+              <%= entry.accounting_transaction.description %>
+              <%= if entry.description do %>
+                <span class="text-zinc-400"> · <%= entry.description %></span>
+              <% end %>
+            </td>
+            <td class="py-3 pr-6">
+              <%= sphere_label(entry.accounting_transaction.sphere) %>
+            </td>
+            <td class="py-3 pr-6 text-right">
+              <%= format_money(soll_betrag(entry.amount)) %>
+            </td>
+            <td class="py-3 text-right">
+              <%= format_money(haben_betrag(entry.amount)) %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+      <tfoot class="border-t-2 border-zinc-300 text-zinc-800 font-medium">
+        <tr>
+          <td colspan="4" class="pt-3 pr-6">Saldo</td>
+          <td class="pt-3 pr-6 text-right">
+            <%= format_money(soll_betrag(saldo(@entries))) %>
+          </td>
+          <td class="pt-3 text-right">
+            <%= format_money(haben_betrag(saldo(@entries))) %>
+          </td>
+        </tr>
+      </tfoot>
+    </table>
+  <% end %>
+</.card>
+
+    <.back navigate={~p"/clubs/#{@club_id}/ledger"}>
+      Zurück zum Hauptbuch
+    </.back>

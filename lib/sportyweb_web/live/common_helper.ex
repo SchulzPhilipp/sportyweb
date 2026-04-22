@@ -1,4 +1,8 @@
 defmodule SportywebWeb.CommonHelper do
+  import Phoenix.Component
+
+  alias Sportyweb.Accounting
+
   def format_boolean_field(field) do
     if !is_nil(field) && field do
       "Ja"
@@ -92,4 +96,64 @@ defmodule SportywebWeb.CommonHelper do
       _ -> "-"
     end
   end
+
+  def on_mount(:load_active_period, %{"club_id" => club_id}, session, socket) do
+    active_period_id = Map.get(session, "active_period_id")
+    active_period_club_id = Map.get(session, "active_period_club_id")
+
+    # The session-stored period is only reused if it belongs to the club being
+    # viewed. If the user navigates to a different club, the session period is
+    # stale and the newest open period for the new club is used instead.
+    active_period =
+      if active_period_id && active_period_club_id == club_id do
+        active_period_id
+        |> Accounting.get_accounting_period!()
+        |> then(fn
+          # The stored period may have been closed or deleted since it was
+          # saved to the session; fall back to the newest open one in that case.
+          nil -> Accounting.get_newest_open_period(club_id)
+          period -> period
+        end)
+      else
+        Accounting.get_newest_open_period(club_id)
+      end
+
+    all_periods = Accounting.list_accounting_periods(club_id)
+
+    # Determine the position of the active period in the full list so the
+    # PeriodNavigatorComponent can render prev/next navigation correctly.
+    # Defaults to index 0 if the active period is not found (e.g. nil period).
+    current_index =
+      if active_period do
+        Enum.find_index(all_periods, &(&1.id == active_period.id)) || 0
+      else
+        0
+      end
+
+    {:cont,
+    socket
+    |> assign(:active_period, active_period)
+    |> assign(:all_periods, all_periods)
+    |> assign(:period_index, current_index)}
+  end
+
+  # Fallback clause for routes without a club_id (e.g. global or admin routes).
+  # Period navigation is not available here, so all_periods and period_index
+  # are set to safe empty defaults.
+  def on_mount(:load_active_period, _params, session, socket) do
+    active_period_id = Map.get(session, "active_period_id")
+
+    active_period =
+      if active_period_id do
+        Accounting.get_accounting_period!(active_period_id)
+      end
+
+    {:cont,
+    socket
+    |> assign(:active_period, active_period)
+    |> assign(:all_periods, [])
+    |> assign(:period_index, 0)}
+  end
+
+
 end
