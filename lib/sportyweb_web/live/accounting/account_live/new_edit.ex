@@ -61,11 +61,21 @@ defmodule SportywebWeb.Accounting.AccountLive.NewEdit do
   @impl true
   def handle_event("delete", %{"id" => id}, socket) do
     account = Accounting.get_account!(id)
-    {:ok, _} = Accounting.delete_account(account)
 
-    {:noreply,
-     socket
-     |> put_flash(:info, "Konto erfolgreich gelöscht")
-     |> push_navigate(to: "/clubs/#{account.club_id}/accounts")}
+    case Accounting.delete_account(account) do
+
+      {:ok, _account} ->
+        {:noreply,
+        socket
+        |> put_flash(:info, "Konto erfolgreich gelöscht")
+        |> push_navigate(to: "/clubs/#{account.club_id}/accounts")}
+
+      {:error, %Ecto.Changeset{} = changeset} ->
+        message =
+          changeset.errors
+          |> Keyword.get(:entries)
+          |> elem(0)
+        {:noreply, put_flash(socket, :error, message)}
+    end
   end
 end

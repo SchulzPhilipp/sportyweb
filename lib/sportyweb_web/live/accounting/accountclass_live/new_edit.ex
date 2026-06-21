@@ -60,11 +60,20 @@ defmodule SportywebWeb.Accounting.AccountclassLive.NewEdit do
   @impl true
   def handle_event("delete", %{"id" => id}, socket) do
     accountclass = Accounting.get_accountclass!(id)
-    {:ok, _} = Accounting.delete_accountclass(accountclass)
 
-    {:noreply,
-     socket
-     |> put_flash(:info, "Kontenklasse erfolgreich gelöscht")
-     |> push_navigate(to: "/clubs/#{accountclass.club_id}/accountclasses")}
+    case Accounting.delete_accountclass(accountclass) do
+      {:ok, _accountclass} ->
+        {:noreply,
+        socket
+        |> put_flash(:info, "Kontenklasse erfolgreich gelöscht")
+        |> push_navigate(to: "/clubs/#{accountclass.club_id}/accountclasses")}
+
+      {:error, %Ecto.Changeset{} = changeset} ->
+        message =
+          changeset.errors
+          |> Keyword.get(:accounts)
+          |> elem(0)
+        {:noreply, put_flash(socket, :error, message)}
+    end
   end
 end

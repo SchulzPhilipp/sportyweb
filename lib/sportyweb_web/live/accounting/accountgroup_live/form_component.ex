@@ -33,6 +33,7 @@ defmodule SportywebWeb.Accounting.AccountgroupLive.FormComponent do
             </div>
             <.button
               :if={@accountgroup.id}
+              type="button"
               class="bg-rose-700 hover:bg-rose-800"
               phx-click={JS.push("delete", value: %{id: @accountgroup.id})}
               data-confirm="Unwiderruflich löschen?"

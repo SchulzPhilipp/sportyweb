@@ -173,6 +173,22 @@ defmodule SportywebWeb.AccountLiveTest do
       assert html =~ "Kontenplan"
       refute html =~ "some accountname"
     end
+
+    test "shows error when deleting account with entries", %{conn: conn, user: user} do
+      account = account_fixture()
+      _entry = entry_fixture(account_id: account.id)
+
+      conn = conn |> log_in_user(user)
+      {:ok, edit_live, _html} = live(conn, ~p"/accounts/#{account}/edit")
+
+      html =
+        edit_live
+        |> element("#account-form button", "Löschen")
+        |> render_click()
+
+      assert html =~ "kann nicht gelöscht werden"
+    end
+
   end
 
   describe "Show" do

@@ -143,6 +143,20 @@ describe "New/Edit" do
       assert html =~ "Kontengruppen"
       refute html =~ "Standard Gruppe"
     end
+
+    test "shows error when deleting accountgroup with assigned accounts", %{conn: conn, user: user, accountgroup: accountgroup} do
+      _account = account_fixture(%{club_id: accountgroup.club_id, accountgroup_id: accountgroup.id})
+
+      conn = conn |> log_in_user(user)
+      {:ok, edit_live, _html} = live(conn, ~p"/accountgroups/#{accountgroup}/edit")
+
+      html =
+        edit_live
+        |> element("#accountgroup-form button", "Löschen")
+        |> render_click()
+
+      assert html =~ "kann nicht gelöscht werden"
+    end
   end
 
   describe "Show" do

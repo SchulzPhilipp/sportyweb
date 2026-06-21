@@ -246,9 +246,10 @@ describe "New/Edit - with Entries" do
 
     # Konto aus Dropdown auswählen —
     # setzt Hidden-Field auf account.id
-    new_live
-    |> element("[phx-click='select_account'][phx-value-id='#{account_a.id}']")
-    |> render_click()
+    html =
+      new_live
+      |> element("[phx-click='select_account'][phx-value-id='#{account_a.id}']")
+      |> render_click()
 
     # Prüfen ob Suchfeld den Kontonamen zeigt
     assert html =~ "Musterkonto"

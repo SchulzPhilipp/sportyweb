@@ -150,6 +150,20 @@ describe "New/Edit" do
       assert html =~ "Kontenklassen"
       refute html =~ "Default Class"
     end
+
+    test "shows error when deleting accountclass with assigned accounts", %{conn: conn, user: user, accountclass: accountclass} do
+      _account = account_fixture(%{club_id: accountclass.club_id, accountclass_id: accountclass.id})
+
+      conn = conn |> log_in_user(user)
+      {:ok, edit_live, _html} = live(conn, ~p"/accountclasses/#{accountclass}/edit")
+
+      html =
+        edit_live
+        |> element("#accountclass-form button", "Löschen")
+        |> render_click()
+
+      assert html =~ "kann nicht gelöscht werden"
+    end
   end
 
   describe "Show" do

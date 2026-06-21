@@ -61,11 +61,20 @@ defmodule SportywebWeb.Accounting.AccountingPeriodLive.NewEdit do
   @impl true
   def handle_event("delete", %{"id" => id}, socket) do
     accounting_period = Accounting.get_accounting_period!(id)
-    {:ok, _} = Accounting.delete_accounting_period(accounting_period)
 
-    {:noreply,
-     socket
-     |> put_flash(:info, "Buchungsperiode erfolgreich gelöscht")
-     |> push_navigate(to: "/clubs/#{accounting_period.club_id}/accounting_periods")}
+    case Accounting.delete_accounting_period(accounting_period) do
+      {:ok, _accounting_period} ->
+        {:noreply,
+        socket
+        |> put_flash(:info, "Buchungsperiode erfolgreich gelöscht")
+        |> push_navigate(to: "/clubs/#{accounting_period.club_id}/accounting_periods")}
+
+      {:error, %Ecto.Changeset{} = changeset} ->
+        message =
+          changeset.errors
+          |> Keyword.get(:accounting_transactions)
+          |> elem(0)
+        {:noreply, put_flash(socket, :error, message)}
+    end
   end
 end

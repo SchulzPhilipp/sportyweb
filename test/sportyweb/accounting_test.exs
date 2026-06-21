@@ -182,6 +182,13 @@ defmodule Sportyweb.AccountingTest do
       assert_raise Ecto.NoResultsError, fn -> Accounting.get_account!(account.id) end
     end
 
+    test "delete_account/1 fails when entries are assigned to the account" do
+      account = account_fixture()
+      _entry = entry_fixture(account_id: account.id)
+
+      assert {:error, _} = Accounting.delete_account(account)
+    end
+
     test "change_account/1 returns a account changeset" do
       account = account_fixture()
       account = Sportyweb.Repo.preload(account, [:club, :accountclass, :accountgroup])
@@ -253,6 +260,13 @@ defmodule Sportyweb.AccountingTest do
       assert_raise Ecto.NoResultsError, fn -> Accounting.get_accountclass!(accountclass.id) end
     end
 
+    test "delete_accountclass/1 fails when accounts are assigned" do
+      accountclass = accountclass_fixture()
+      _account = account_fixture(accountclass_id: accountclass.id)
+
+      assert {:error, _} = Accounting.delete_accountclass(accountclass)
+    end
+
     test "change_accountclass/1 returns a accountclass changeset" do
       accountclass = accountclass_fixture()
       assert %Ecto.Changeset{} = Accounting.change_accountclass(accountclass)
@@ -321,6 +335,13 @@ defmodule Sportyweb.AccountingTest do
       accountgroup = accountgroup_fixture()
       assert {:ok, %Accountgroup{}} = Accounting.delete_accountgroup(accountgroup)
       assert_raise Ecto.NoResultsError, fn -> Accounting.get_accountgroup!(accountgroup.id) end
+    end
+
+    test "delete_accountgroup/1 fails when accounts are assigned" do
+      accountgroup = accountgroup_fixture()
+      _account = account_fixture(accountgroup_id: accountgroup.id)
+
+      assert {:error, _} = Accounting.delete_accountgroup(accountgroup)
     end
 
     test "change_accountgroup/1 returns a accountgroup changeset" do
@@ -416,6 +437,13 @@ defmodule Sportyweb.AccountingTest do
       assert_raise Ecto.NoResultsError, fn -> Accounting.get_accounting_period!(accounting_period.id) end
     end
 
+    test "delete_accounting_period/1 fails when transactions are assigned" do
+      accounting_period = accounting_period_fixture()
+      _accounting_transaction = accounting_transaction_fixture(accounting_period_id: accounting_period.id)
+
+      assert {:error, _} = Accounting.delete_accounting_period(accounting_period)
+    end
+
     test "change_accounting_period/1 returns a accounting_period changeset" do
       accounting_period = accounting_period_fixture()
       assert %Ecto.Changeset{} = Accounting.change_accounting_period(accounting_period)
@@ -494,18 +522,19 @@ defmodule Sportyweb.AccountingTest do
       assert entry.accounting_transaction_id == reloaded.accounting_transaction_id
     end
 
-    test "delete_entry/1 deletes the entry" do
-      entry =
-        entry_fixture()
-        |> Repo.preload([:accounting_transaction])
+    test "delete_entry/1 succeeds when transaction is in draft" do
+      accounting_transaction = accounting_transaction_fixture(status: :draft)
+      entry = entry_fixture(accounting_transaction_id: accounting_transaction.id)
 
-      if entry.accounting_transaction.status == :draft do
-        Repo.delete(entry)
-      else
-        {:error, :transaction_not_draft}
-      end
+      assert {:ok, _} = Accounting.delete_entry(entry)
     end
 
+    test "delete_entry/1 fails when transaction is not draft" do
+      accounting_transaction = accounting_transaction_fixture(status: :posted)
+      entry = entry_fixture(accounting_transaction_id: accounting_transaction.id)
+
+      assert {:error, :immutable} = Accounting.delete_entry(entry)
+    end
   end
 
   describe "accountingtransactions" do
@@ -631,6 +660,18 @@ defmodule Sportyweb.AccountingTest do
       assert {:ok, result} = Accounting.post_accounting_transaction(accounting_transaction)
       assert result.status == :posted
       assert result.status != accounting_transaction.status
+    end
+
+    test "post_accounting_transaction fails when entries are not balanced" do
+      accounting_transaction = accounting_transaction_fixture(status: :pending)
+      entry_fixture(accounting_transaction_id: accounting_transaction.id, amount: "100")
+      entry_fixture(accounting_transaction_id: accounting_transaction.id, amount: "-50")
+
+      assert {:error, %Ecto.Changeset{} = changeset} =
+              Accounting.post_accounting_transaction(accounting_transaction)
+
+      assert [error_message] = errors_on(changeset).entries
+      assert error_message =~ "ausgeglichen sein"
     end
 
     test "post_accounting_transaction in case of an invalid transition" do

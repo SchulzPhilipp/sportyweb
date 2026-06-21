@@ -60,11 +60,20 @@ defmodule SportywebWeb.Accounting.AccountgroupLive.NewEdit do
   @impl true
   def handle_event("delete", %{"id" => id}, socket) do
     accountgroup = Accounting.get_accountgroup!(id)
-    {:ok, _} = Accounting.delete_accountgroup(accountgroup)
 
-    {:noreply,
-     socket
-     |> put_flash(:info, "Kontengruppe erfolgreich gelöscht")
-     |> push_navigate(to: "/clubs/#{accountgroup.club_id}/accountgroups")}
+    case Accounting.delete_accountgroup(accountgroup) do
+      {:ok, _accountgroup} ->
+        {:noreply,
+        socket
+        |> put_flash(:info, "Kontengruppe erfolgreich gelöscht")
+        |> push_navigate(to: "/clubs/#{accountgroup.club_id}/accountgroups")}
+
+      {:error, %Ecto.Changeset{} = changeset} ->
+        message =
+          changeset.errors
+          |> Keyword.get(:accounts)
+          |> elem(0)
+        {:noreply, put_flash(socket, :error, message)}
+    end
   end
 end

@@ -536,21 +536,28 @@ defmodule Sportyweb.Accounting do
     |> Repo.update()
   end
 
-  @doc """
-  Deletes an account.
+@doc """
+Deletes an account.
 
-  ## Examples
+Returns {:error, changeset} if the account has associated entries.
 
-      iex> delete_account(account)
-      {:ok, %Account{}}
+## Examples
 
-      iex> delete_account(account)
-      {:error, %Ecto.Changeset{}}
+    iex> delete_account(account)
+    {:ok, %Account{}}
 
-  """
-  def delete_account(%Account{} = account) do
-    Repo.delete(account)
-  end
+    iex> delete_account(account)
+    {:error, %Ecto.Changeset{}}
+
+"""
+def delete_account(%Account{} = account) do
+  account
+  |> Ecto.Changeset.change()
+  |> Ecto.Changeset.foreign_key_constraint(:entries,
+      name: :entries_account_id_fkey,
+      message: "Das Konto kann nicht gelöscht werden, da ihm Buchungseinträge zugeordnet sind.")
+  |> Repo.delete()
+end
 
   @doc """
   Returns an `%Ecto.Changeset{}` for tracking account changes.
@@ -643,6 +650,8 @@ defmodule Sportyweb.Accounting do
   @doc """
   Deletes an accountclass.
 
+  Returns {:error, changeset} if accounts are assigned to this accountclass.
+
   ## Examples
 
       iex> delete_accountclass(accountclass)
@@ -653,7 +662,12 @@ defmodule Sportyweb.Accounting do
 
   """
   def delete_accountclass(%Accountclass{} = accountclass) do
-    Repo.delete(accountclass)
+    accountclass
+    |> Ecto.Changeset.change()
+    |> Ecto.Changeset.foreign_key_constraint(:accounts,
+        name: :accounts_accountclass_id_fkey,
+        message: "Die Kontenklasse kann nicht gelöscht werden, da ihr Konten zugeordnet sind.")
+    |> Repo.delete()
   end
 
   @doc """
@@ -747,6 +761,8 @@ defmodule Sportyweb.Accounting do
   @doc """
   Deletes an accountgroup.
 
+  Returns {:error, changeset} if accounts are assigned to this accountgroup.
+
   ## Examples
 
       iex> delete_accountgroup(accountgroup)
@@ -757,7 +773,12 @@ defmodule Sportyweb.Accounting do
 
   """
   def delete_accountgroup(%Accountgroup{} = accountgroup) do
-    Repo.delete(accountgroup)
+    accountgroup
+    |> Ecto.Changeset.change()
+    |> Ecto.Changeset.foreign_key_constraint(:accounts,
+        name: :accounts_accountgroup_id_fkey,
+        message: "Die Kontengruppe kann nicht gelöscht werden, da ihr Konten zugeordnet sind.")
+    |> Repo.delete()
   end
 
   @doc """
@@ -897,6 +918,8 @@ defmodule Sportyweb.Accounting do
   @doc """
   Deletes an accounting period.
 
+  Returns {:error, changeset} if accounting transactions are assigned to this period.
+
   ## Examples
 
       iex> delete_accounting_period(accounting_period)
@@ -907,7 +930,12 @@ defmodule Sportyweb.Accounting do
 
   """
   def delete_accounting_period(%AccountingPeriod{} = accounting_period) do
-    Repo.delete(accounting_period)
+    accounting_period
+    |> Ecto.Changeset.change()
+    |> Ecto.Changeset.foreign_key_constraint(:accounting_transactions,
+        name: :accounting_transactions_accounting_period_id_fkey,
+        message: "Die Buchungsperiode kann nicht gelöscht werden, da ihr Buchungen zugeordnet sind.")
+    |> Repo.delete()
   end
 
   @doc """
@@ -995,7 +1023,7 @@ defmodule Sportyweb.Accounting do
       iex> update_entry(entry, %{amount: Money.new(100, :EUR)})
       {:ok, %Entry{}}
 
-      iex> update_entry(entry, %{amount: Money.new(100, :EUR)})
+      iex> update_entry(entry, %{amount: nil})
       {:error, %Ecto.Changeset{}}
 
       iex> update_entry(posted_entry, %{amount: Money.new(100, :EUR)})
@@ -1024,17 +1052,16 @@ defmodule Sportyweb.Accounting do
 
   ## Examples
 
-      iex> delete_entry(entry)
+      iex> delete_entry(draft_entry)
       {:ok, %Entry{}}
-
-      iex> delete_entry(entry)
-      {:error, %Ecto.Changeset{}}
 
       iex> delete_entry(posted_entry)
       {:error, :immutable}
 
   """
   def delete_entry(%Entry{} = entry) do
+    entry = Repo.preload(entry, :accounting_transaction)
+
     case entry.accounting_transaction.status do
       status when status in [:pending, :posted, :voided, :deleted] ->
         {:error, :immutable}

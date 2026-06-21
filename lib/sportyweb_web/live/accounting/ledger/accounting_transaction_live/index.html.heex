@@ -15,7 +15,7 @@
         period_index={@period_index}
         club={@club}
       />
-      </div>
+    </div>
   <%= if @has_transactions? do %>
     <div class="grid grid-cols-1 gap-8">
       <%= for {hauptgruppe, klassen} <- @grouped_accounts do %>

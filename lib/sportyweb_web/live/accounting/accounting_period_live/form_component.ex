@@ -50,6 +50,7 @@ defmodule SportywebWeb.Accounting.AccountingPeriodLive.FormComponent do
             </div>
             <.button
               :if={@accounting_period.id}
+              type="button"
               class="bg-rose-700 hover:bg-rose-800"
               phx-click={JS.push("delete", value: %{id: @accounting_period.id})}
               data-confirm="Unwiderruflich löschen?"

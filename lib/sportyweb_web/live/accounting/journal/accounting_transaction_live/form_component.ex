@@ -175,6 +175,7 @@ defmodule SportywebWeb.Accounting.Journal.AccountingTransactionLive.FormComponen
             </div>
             <.button
               :if={@accounting_transaction.id && (!@deleted? && !@pending? && !@posted? && !@voided?)}
+              type="button"
               class="bg-rose-700 hover:bg-rose-800"
               phx-click={JS.push("delete", value: %{id: @accounting_transaction.id})}
               data-confirm="Unwiderruflich löschen?"

@@ -138,6 +138,22 @@ defmodule SportywebWeb.Accounting.AccountingPeriodLiveTest do
       assert html =~ "2027"
     end
 
+    test "validates that ends_on must be after starts_on", %{conn: conn, user: user} do
+      club = club_fixture()
+      conn = conn |> log_in_user(user)
+      {:ok, new_live, _html} = live(conn, ~p"/clubs/#{club}/accounting_periods/new")
+
+      invalid_attrs =
+        @create_attrs
+        |> Map.put(:club_id, club.id)
+        |> Map.put(:starts_on, ~D[2026-12-31])
+        |> Map.put(:ends_on, ~D[2026-01-01])
+
+      assert new_live
+        |> form("#accounting_period-form", accounting_period: invalid_attrs)
+        |> render_change() =~ "nach dem Startdatum"
+    end
+
     test "cancels updates accounting period", %{conn: conn, user: user, accounting_period: accounting_period} do
       conn = conn |> log_in_user(user)
       {:ok, edit_live, _html} = live(conn, ~p"/accounting_periods/#{accounting_period}/edit")
@@ -165,6 +181,20 @@ defmodule SportywebWeb.Accounting.AccountingPeriodLiveTest do
       assert html =~ "Buchungsperiode erfolgreich gelöscht"
       assert html =~ "Buchungsperioden"
       refute html =~ "2026"
+    end
+
+    test "shows error when deleting accounting_period with transactions", %{conn: conn, user: user, accounting_period: accounting_period} do
+      _accounting_transaction = accounting_transaction_fixture(accounting_period_id: accounting_period.id)
+
+      conn = conn |> log_in_user(user)
+      {:ok, edit_live, _html} = live(conn, ~p"/accounting_periods/#{accounting_period}/edit")
+
+      html =
+        edit_live
+        |> element("#accounting_period-form button", "Löschen")
+        |> render_click()
+
+      assert html =~ "kann nicht gelöscht werden"
     end
   end
 
